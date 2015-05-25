@@ -1,6 +1,14 @@
 #!/bin/bash
 # Execute na pasta do projeto
 
+# TODO
+#   - pq plugin global nao funcionou
+#	- precisa do packages.json?
+#	- parametrizar script (pasta opcional, pdf/html/epub/mobi, aluno/instrutor)
+#	- parametros opcionais (titulo, description, template)
+#	- testar corner cases, botar ifs
+#	- Resolver notes, comentarios etc
+
 
 SRCDIR="$(pwd)"
 BUILDDIR="$SRCDIR"/.build
