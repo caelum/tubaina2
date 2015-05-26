@@ -5,7 +5,6 @@
 #   - pq plugin global nao funcionou
 #	- precisa do packages.json?
 #	- parametrizar script (pasta opcional, pdf/html/epub/mobi, aluno/instrutor)
-#	- parametros opcionais (titulo, description, template)
 #	- testar corner cases, botar ifs
 #	- Resolver notes, comentarios etc
 
@@ -91,7 +90,12 @@ END
 
 # Empty cover
 if [ ! -f "$BUILDDIR"/cover.jpg ]; then
-	convert -size 32x32 xc:orange "$BUILDDIR"/cover.jpg
+	convert -size 3200x4600 -pointsize 100  \
+		-fill red -draw "text 100,1000 \"[AUTO GENERATED UGLY COVER]\"" \
+		-fill red -draw "text 100,1200 \"[PLEASE ADD YOUR OWN cover.jpg]\"" \
+		-fill white -draw "text 100,2500 \"$TITLE\"" \
+		xc:orange \
+		"$BUILDDIR"/cover.jpg
 fi
 
 # Build PDF
