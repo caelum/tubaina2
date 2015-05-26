@@ -73,7 +73,6 @@ echo "[tubaina]   AUTHOR       = $AUTHOR"
 echo "[tubaina]   PUBLISHER    = $PUBLISHER"
 echo "[tubaina]   THEME        = $THEME"
 echo "[tubaina]   DOCKER_IMAGE = $DOCKER_IMAGE"
-echo
 
 # first chapter as README
 first_chapter="$(ls *.md | sort -n | head -1)"
@@ -143,7 +142,42 @@ fi
 
 # Transform instructor notes in boxes
 if [[ "$OPTS" == *-showNotes* ]]; then
-	echo TODO transformar comentarios em box
+	echo "[tubaina] Detected -showNotes option"
+	echo "[tubaina] Transforming <!--@note --> in md boxes"
+
+	for file in "$BUILDDIR"/*.md; do
+		inside_note=false
+
+		cat "$file" | while read line; do
+
+			if [[ $inside_note == true ]]; then 
+				echo "> $line" | sed -e 's/-->$//'
+
+				if [[ $line == *--\> ]]; then
+					inside_note=false
+				fi
+			else
+				if [[ $line == \<\!--@note* ]]; then
+					echo "> **@note**"
+					echo ">"
+
+					note=$(echo $line | sed -e 's/^<!--@note//;s/-->$//')
+					if [[ "$note" ]]; then
+						echo "> $note"
+					fi
+
+					if [[ $line != *--\> ]]; then
+						inside_note=true
+					fi
+				else
+					echo "$line"
+				fi
+			fi
+
+		done > "$BUILDDIR"/.tmp
+
+		mv "$BUILDDIR"/.tmp "$file"
+	done
 fi
 
 # Build using docker or in the OS
@@ -161,22 +195,18 @@ echo "[tubaina] Building with Gitbook"
 if [[ "$OPTS" == *-html* ]]; then
 	run gitbook build
 
-	echo
 	echo "[tubaina] Generated HTML output: $BUILDIR/_book/"
 elif [[ "$OPTS" == *-epub* ]]; then
 	run gitbook epub
 
-	echo
 	echo "[tubaina] Generated epub: $BUILDIR/book.epub"
 elif [[ "$OPTS" == *-mobi* ]]; then
 	run gitbook mobi
 
-	echo
 	echo "[tubaina] Generated mobi: $BUILDIR/book.mobi"
 else
 	run gitbook pdf
 
-	echo
 	echo "[tubaina] Generated PDF: $BUILDIR/book.pdf"
 fi
 
