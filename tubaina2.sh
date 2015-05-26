@@ -1,7 +1,7 @@
 #!/bin/bash
 # Tubaina2.sh by @sergiolopes & @adrianoalmeida7
 
-if [[ "$@" == *-h* ]] || [[ "$@" == *-help* ]]; then
+if [[ "$@" == *-help* ]]; then
 	echo "tubaina2.sh"
 	echo "  Generates a PDF book from current directory using docker."
 	echo
@@ -24,12 +24,6 @@ if [[ "$@" == *-h* ]] || [[ "$@" == *-help* ]]; then
 	exit 0
 fi
 
-# TODO
-#	- testar corner cases, botar ifs
-#	- Resolver notes, comentarios etc
-
-
-
 # First argument (optional) is a folder
 if [ "$1" ] && [[ "$1" != -* ]]; then
 	SRCDIR="$1"
@@ -44,41 +38,16 @@ if [ ! -d "$SRCDIR" ]; then
 	exit 1
 fi
 
+echo "[tubaina] Generating book from $SRCDIR"
+
 BUILDDIR="$SRCDIR"/.build
 
 rm -rf "$BUILDDIR"
 mkdir -p "$BUILDDIR"
 
-# copy directory
-echo "Copying project to $BUILDDIR"
+# copy directory to tmp
+echo "[tubaina] Copying project to $BUILDDIR"
 cp -R "$SRCDIR"/* "$BUILDDIR"/
-
-# first chapter as README
-first_chapter="$(ls *.md | sort -n | head -1)"
-echo "Renaming $first_chapter to README"
-if [ -f "$first_chapter" ]; then
-	mv "$BUILDDIR"/"$first_chapter" "$BUILDDIR"/README.md
-fi
-
-# generates SUMMARY
-echo "Generating SUMMARY"
-echo "# Sumário" > "$BUILDDIR"/SUMMARY.md
-
-for file in *.md; do
-	# Extract first line (expects h1 syntax)
-	title=$(head -1 "$file" | sed -e 's/^#[ \t]*//g')
-
-	if [ "$file" == "$first_chapter" ]; then
-		file="README.md"
-	fi
-
-	echo "  * $title ($file)"
-	echo "* [$title]($file)" >> "$BUILDDIR"/SUMMARY.md
-
-	# Remove first line (chapter title)
-	tail -n +2 "$BUILDDIR"/"$file" > "$BUILDDIR"/.tmp
-	mv "$BUILDDIR"/.tmp "$BUILDDIR"/"$file"
-done
 
 # Get book info
 if [ -f "$SRCDIR"/../book.properties ]; then
@@ -96,7 +65,45 @@ fi
 [ $THEME ] || THEME="cdc-tema"
 [ $DOCKER_IMAGE ] || DOCKER_IMAGE="cdc/gitbook"
 
+# Log
+echo "[tubaina] Using these options:"
+echo "[tubaina]   TITLE        = $TITLE"
+echo "[tubaina]   DESCRIPTION  = $DESCRIPTION"
+echo "[tubaina]   AUTHOR       = $AUTHOR"
+echo "[tubaina]   PUBLISHER    = $PUBLISHER"
+echo "[tubaina]   THEME        = $THEME"
+echo "[tubaina]   DOCKER_IMAGE = $DOCKER_IMAGE"
+echo
+
+# first chapter as README
+first_chapter="$(ls *.md | sort -n | head -1)"
+echo "[tubaina] Renaming $first_chapter to README"
+if [ -f "$first_chapter" ]; then
+	mv "$BUILDDIR"/"$first_chapter" "$BUILDDIR"/README.md
+fi
+
+# generates SUMMARY
+echo "[tubaina] Generating SUMMARY"
+echo "# Summary" > "$BUILDDIR"/SUMMARY.md
+
+for file in *.md; do
+	# Extract first line (expects h1 syntax)
+	title=$(head -1 "$file" | sed -e 's/^#[ \t]*//g')
+	echo "[tubaina]   $file: $title"
+
+	if [ "$file" == "$first_chapter" ]; then
+		file="README.md"
+	fi
+
+	echo "* [$title]($file)" >> "$BUILDDIR"/SUMMARY.md
+
+	# Remove first line (chapter title)
+	tail -n +2 "$BUILDDIR"/"$file" > "$BUILDDIR"/.tmp
+	mv "$BUILDDIR"/.tmp "$BUILDDIR"/"$file"
+done
+
 # book.json
+echo "[tubaina] Generating book.json"
 cat <<END > "$BUILDDIR"/book.json
 {
 	"title": "$TITLE",
@@ -125,12 +132,13 @@ END
 
 # Empty cover
 if [ ! -f "$BUILDDIR"/cover.jpg ]; then
+	echo "[tubaina][warning] You don't have a cover.jpg"
 	convert -size 3200x4600 -pointsize 100  \
 		-fill red -draw "text 100,1000 \"[AUTO GENERATED UGLY COVER]\"" \
 		-fill red -draw "text 100,1200 \"[PLEASE ADD YOUR OWN cover.jpg]\"" \
 		-fill white -draw "text 100,2500 \"$TITLE\"" \
 		xc:orange \
-		"$BUILDDIR"/cover.jpg
+		"$BUILDDIR"/cover.jpg &> /dev/null
 fi
 
 # Transform instructor notes in boxes
@@ -145,29 +153,30 @@ function run {
 		$@
 	else
 		docker run -v "$BUILDDIR":/data $DOCKER_IMAGE $@
-	fi
+	fi | while read line; do echo "[gitbook] $line"; done
 }
 
 # What to build
+echo "[tubaina] Building with Gitbook"
 if [[ "$OPTS" == *-html* ]]; then
 	run gitbook build
 
 	echo
-	echo Generated HTML output: $BUILDIR/_book/
+	echo "[tubaina] Generated HTML output: $BUILDIR/_book/"
 elif [[ "$OPTS" == *-epub* ]]; then
 	run gitbook epub
 
 	echo
-	echo Generated epub: $BUILDIR/book.epub
+	echo "[tubaina] Generated epub: $BUILDIR/book.epub"
 elif [[ "$OPTS" == *-mobi* ]]; then
 	run gitbook mobi
 
 	echo
-	echo Generated mobi: $BUILDIR/book.mobi
+	echo "[tubaina] Generated mobi: $BUILDIR/book.mobi"
 else
 	run gitbook pdf
 
 	echo
-	echo Generated PDF: $BUILDIR/book.pdf
+	echo "[tubaina] Generated PDF: $BUILDIR/book.pdf"
 fi
 
