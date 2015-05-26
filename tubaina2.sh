@@ -1,15 +1,49 @@
 #!/bin/bash
-# Execute na pasta do projeto
+# Tubaina2.sh by @sergiolopes & @adrianoalmeida7
+
+if [[ "$@" == *-h* ]] || [[ "$@" == *-help* ]]; then
+	echo "tubaina2.sh"
+	echo "  Generates a PDF book from current directory using docker."
+	echo
+	echo "tubaina.sh folder/ -html -showNotes -native"
+	echo "  First argument (optional): source folder"
+	echo "  Output options: -html -epub -mobi (optional, default pdf)"
+	echo "  -showNotes exposes instructor comments notes (optional, default hide notes)"
+	echo "  -native runs outside Docker (optional, default runs inside Docker)"
+	echo
+	echo "On your book source folder, add a book.properties with optional book configurations:"
+	echo '  TITLE="Your Title"'
+	echo '  DESCRIPTION="Book description"'
+	echo '  PUBLISHER="Casa do Código"'
+	echo '  AUTHOR="Mr. You"'
+	echo '  THEME="cdc-tema"'
+	echo '  DOCKER_IMAGE="cdc/gitbook"'
+	echo
+	echo "Also add a cover.jpg on your source folder."
+
+	exit 0
+fi
 
 # TODO
-#   - pq plugin global nao funcionou
-#	- precisa do packages.json?
-#	- parametrizar script (pasta opcional, pdf/html/epub/mobi, aluno/instrutor)
 #	- testar corner cases, botar ifs
 #	- Resolver notes, comentarios etc
 
 
-SRCDIR="$(pwd)"
+
+# First argument (optional) is a folder
+if [ "$1" ] && [[ "$1" != -* ]]; then
+	SRCDIR="$1"
+	OPTS=${@:2}
+else
+	SRCDIR="$(pwd)"	
+	OPTS=$@
+fi
+
+if [ ! -d "$SRCDIR" ]; then
+	echo "Error: $SRCDIR isn't a folder"
+	exit 1
+fi
+
 BUILDDIR="$SRCDIR"/.build
 
 rm -rf "$BUILDDIR"
@@ -60,6 +94,7 @@ fi
 [ $AUTHOR ] || AUTHOR="Anonymous {define an author in book.properties}"
 [ $PUBLISHER ] || PUBLISHER="Anonymous {define a publisher in book.properties}"
 [ $THEME ] || THEME="cdc-tema"
+[ $DOCKER_IMAGE ] || DOCKER_IMAGE="cdc/gitbook"
 
 # book.json
 cat <<END > "$BUILDDIR"/book.json
@@ -98,5 +133,41 @@ if [ ! -f "$BUILDDIR"/cover.jpg ]; then
 		"$BUILDDIR"/cover.jpg
 fi
 
-# Build PDF
-docker run -v "$BUILDDIR":/data cdc/gitbook gitbook pdf
+# Transform instructor notes in boxes
+if [[ "$OPTS" == *-showNotes* ]]; then
+	echo TODO transformar comentarios em box
+fi
+
+# Build using docker or in the OS
+function run {
+	if [[ "$OPTS" == *-native* ]]; then
+		cd "$BUILDDIR"
+		$@
+	else
+		docker run -v "$BUILDDIR":/data $DOCKER_IMAGE $@
+	fi
+}
+
+# What to build
+if [[ "$OPTS" == *-html* ]]; then
+	run gitbook build
+
+	echo
+	echo Generated HTML output: $BUILDIR/_book/
+elif [[ "$OPTS" == *-epub* ]]; then
+	run gitbook epub
+
+	echo
+	echo Generated epub: $BUILDIR/book.epub
+elif [[ "$OPTS" == *-mobi* ]]; then
+	run gitbook mobi
+
+	echo
+	echo Generated mobi: $BUILDIR/book.mobi
+else
+	run gitbook pdf
+
+	echo
+	echo Generated PDF: $BUILDIR/book.pdf
+fi
+
