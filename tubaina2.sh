@@ -58,12 +58,12 @@ if [ -f "$BUILDDIR"/book.properties ]; then
 fi
 
 # Default book info
-[ $TITLE ] || TITLE="Untitled {define one in book.properties}"
-[ $DESCRIPTION ] || DESCRIPTION="No description {define one in book.properties}"
-[ $AUTHOR ] || AUTHOR="Anonymous {define an author in book.properties}"
-[ $PUBLISHER ] || PUBLISHER="Anonymous {define a publisher in book.properties}"
-[ $THEME ] || THEME="cdc-tema"
-[ $DOCKER_IMAGE ] || DOCKER_IMAGE="cdc/gitbook"
+[ "$TITLE" ] || TITLE="Untitled {define one in book.properties}"
+[ "$DESCRIPTION" ] || DESCRIPTION="No description {define one in book.properties}"
+[ "$AUTHOR" ] || AUTHOR="Anonymous {define an author in book.properties}"
+[ "$PUBLISHER" ] || PUBLISHER="Anonymous {define a publisher in book.properties}"
+[ "$THEME" ] || THEME="cdc-tema"
+[ "$DOCKER_IMAGE" ] || DOCKER_IMAGE="cdc/gitbook"
 
 # Log
 echo "[tubaina] Using these options:"
