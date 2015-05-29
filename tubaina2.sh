@@ -145,10 +145,12 @@ if [[ "$OPTS" == *-showNotes* ]]; then
 	echo "[tubaina] Detected -showNotes option"
 	echo "[tubaina] Transforming <!--@note --> in md boxes"
 
+	IFS=""
+
 	for file in "$BUILDDIR"/*.md; do
 		inside_note=false
 
-		cat "$file" | while read line; do
+		cat "$file" | while read -r line; do
 
 			if [[ $inside_note == true ]]; then 
 				echo "> $line" | sed -e 's/-->$//'

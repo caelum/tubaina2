@@ -20,7 +20,7 @@ Anotacao # 2
 E mais um note:
 
 <!--@note 
-	Anotacao # 3 
+	Anotacao # 3 \
 	Com mais texto
 	-->
 
