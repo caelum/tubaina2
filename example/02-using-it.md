@@ -10,7 +10,7 @@ We can include image files with the usual markdown syntax.
 
 Aqui tem um note:
 
-<!--@note Anotacao # 1 -->
+<!-- @note Anotacao # 1 -->
 
 E outro note:
 <!--@note 

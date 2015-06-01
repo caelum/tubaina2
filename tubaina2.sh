@@ -148,11 +148,11 @@ if [[ "$OPTS" == *-showNotes* ]]; then
 					inside_note=false
 				fi
 			else
-				if [[ $line == \<\!--@note* ]]; then
+				if [[ $line == \<\!--*@note* ]]; then
 					echo "> **@note**"
 					echo ">"
 
-					note=$(echo $line | sed -e 's/^<!--@note//;s/-->$//')
+					note=$(echo $line | sed -e 's/^<!--\s*@note//;s/-->$//')
 					if [[ "$note" ]]; then
 						echo "> $note"
 					fi
