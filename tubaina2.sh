@@ -177,7 +177,7 @@ function run {
 		cd "$BUILDDIR"
 		$@
 	else
-		docker run -v "$BUILDDIR":/data $DOCKER_IMAGE $@
+		docker run --rm -v "$BUILDDIR":/data $DOCKER_IMAGE $@
 	fi | while read line; do echo "[gitbook] $line"; done
 }
 
