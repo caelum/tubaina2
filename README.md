@@ -6,7 +6,7 @@ tubaina2.sh
 
 tubaina.sh folder/ -html -showNotes -native
   First argument (optional): source folder
-  Output options: -html -epub -mobi (optional, default pdf)
+  Output options: -html -epub -mobi -pdf -ebooks (optional, default pdf)
   -showNotes exposes instructor comments notes (optional, default hide notes)
   -native runs outside Docker (optional, default runs inside Docker)
 
