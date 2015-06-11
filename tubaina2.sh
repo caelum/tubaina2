@@ -7,7 +7,7 @@ if [[ "$@" == *-help* ]]; then
 	echo
 	echo "tubaina.sh folder/ -html -showNotes -native"
 	echo "  First argument (optional): source folder"
-	echo "  Output options: -html -epub -mobi (optional, default pdf)"
+	echo "  Output options: -html -epub -mobi -pdf -ebooks (optional, default pdf)"
 	echo "  -showNotes exposes instructor comments notes (optional, default hide notes)"
 	echo "  -native runs outside Docker (optional, default runs inside Docker)"
 	echo
@@ -181,23 +181,41 @@ function run {
 	fi | while read line; do echo "[gitbook] $line"; done
 }
 
+function html {
+	run gitbook build
+	echo "[tubaina] Generated HTML output: $BUILDIR/_book/"
+}
+
+function epub {
+	run gitbook epub
+	echo "[tubaina] Generated epub: $BUILDIR/book.epub"
+}
+
+function mobi {
+	run gitbook mobi
+	echo "[tubaina] Generated mobi: $BUILDIR/book.mobi"
+}
+
+function pdf {
+	run gitbook pdf
+	echo "[tubaina] Generated PDF: $BUILDIR/book.pdf"
+}
+
 # What to build
 echo "[tubaina] Building with Gitbook"
 if [[ "$OPTS" == *-html* ]]; then
-	run gitbook build
-
-	echo "[tubaina] Generated HTML output: $BUILDIR/_book/"
+    html
 elif [[ "$OPTS" == *-epub* ]]; then
-	run gitbook epub
-
-	echo "[tubaina] Generated epub: $BUILDIR/book.epub"
+    epub
 elif [[ "$OPTS" == *-mobi* ]]; then
-	run gitbook mobi
-
-	echo "[tubaina] Generated mobi: $BUILDIR/book.mobi"
+    mobi
+elif [[ "$OPTS" == *-pdf* ]]; then
+    pdf
+elif [[ "$OPTS" == *-ebooks* ]]; then
+    pdf
+    epub
+    mobi
 else
-	run gitbook pdf
-
-	echo "[tubaina] Generated PDF: $BUILDIR/book.pdf"
+    pdf
 fi
 
