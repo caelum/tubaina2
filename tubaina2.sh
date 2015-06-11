@@ -14,7 +14,6 @@ if [[ "$@" == *-help* ]]; then
 	echo "On your book source folder, add a book.properties with optional book configurations:"
 	echo '  TITLE="Your Title"'
 	echo '  DESCRIPTION="Book description"'
-	echo '  PUBLISHER="Casa do Código"'
 	echo '  AUTHOR="Mr. You"'
 	echo '  THEME="cdc-tema"'
 	echo '  DOCKER_IMAGE="cdc/gitbook"'
@@ -61,7 +60,6 @@ fi
 [ "$TITLE" ] || TITLE="Untitled {define one in book.properties}"
 [ "$DESCRIPTION" ] || DESCRIPTION="No description {define one in book.properties}"
 [ "$AUTHOR" ] || AUTHOR="Anonymous {define an author in book.properties}"
-[ "$PUBLISHER" ] || PUBLISHER="Anonymous {define a publisher in book.properties}"
 [ "$THEME" ] || THEME="cdc-tema"
 [ "$DOCKER_IMAGE" ] || DOCKER_IMAGE="cdc/gitbook"
 
@@ -70,7 +68,6 @@ echo "[tubaina] Using these options:"
 echo "[tubaina]   TITLE        = $TITLE"
 echo "[tubaina]   DESCRIPTION  = $DESCRIPTION"
 echo "[tubaina]   AUTHOR       = $AUTHOR"
-echo "[tubaina]   PUBLISHER    = $PUBLISHER"
 echo "[tubaina]   THEME        = $THEME"
 echo "[tubaina]   DOCKER_IMAGE = $DOCKER_IMAGE"
 
@@ -108,7 +105,6 @@ cat <<END > "$BUILDDIR"/book.json
 	"title": "$TITLE",
 	"description": "$DESCRIPTION",
 	"author": "$AUTHOR",
-	"publisher": "$PUBLISHER",
 	
 	"plugins": ["cdc", "$THEME"],
 	

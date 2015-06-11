@@ -13,7 +13,6 @@ tubaina.sh folder/ -html -showNotes -native
 On your book source folder, add a book.properties with optional book configurations:
   TITLE="Your Title"
   DESCRIPTION="Book description"
-  PUBLISHER="Casa do Código"
   AUTHOR="Mr. You"
   THEME="cdc-tema"
   DOCKER_IMAGE="cdc/gitbook"
