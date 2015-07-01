@@ -25,7 +25,7 @@ fi
 
 # First argument (optional) is a folder
 if [ "$1" ] && [[ "$1" != -* ]]; then
-	SRCDIR="$1"
+	SRCDIR=`cd "$1"; pwd`
 	OPTS=${@:2}
 else
 	SRCDIR="$(pwd)"	
