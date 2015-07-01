@@ -72,9 +72,10 @@ echo "[tubaina]   THEME        = $THEME"
 echo "[tubaina]   DOCKER_IMAGE = $DOCKER_IMAGE"
 
 # first chapter as README
-first_chapter="$(ls *.md | sort -n | head -1)"
-echo "[tubaina] Renaming $first_chapter to README"
-if [ -f "$first_chapter" ]; then
+first_chapter_path="$(ls $SRCDIR/*.md | sort -n | head -1)"
+first_chapter="${first_chapter_path##*/}"
+if [ -f "$BUILDDIR"/"$first_chapter" ]; then
+	echo "[tubaina] Renaming $first_chapter to README.md"
 	mv "$BUILDDIR"/"$first_chapter" "$BUILDDIR"/README.md
 fi
 
@@ -82,14 +83,16 @@ fi
 echo "[tubaina] Generating SUMMARY"
 echo "# Summary" > "$BUILDDIR"/SUMMARY.md
 
-for file in *.md; do
-	# Extract first line (expects h1 syntax)
-	title=$(head -1 "$file" | sed -e 's/^#[ \t]*//g')
-	echo "[tubaina]   $file: $title"
+for file_path in "$SRCDIR"/*.md; do
+	file="${file_path##*/}"
 
-	if [ "$file" == "$first_chapter" ]; then
+	if [ "$file_path" == "$SRCDIR"/"$first_chapter" ]; then
 		file="README.md"
 	fi
+	
+	# Extract first line (expects h1 syntax)
+	title=$(head -1 "$file_path" | sed -e 's/^#[ \t]*//g')
+	echo "[tubaina]   $file: $title"
 
 	echo "* [$title]($file)" >> "$BUILDDIR"/SUMMARY.md
 
