@@ -134,8 +134,6 @@ if [[ "$OPTS" == *-showNotes* ]]; then
 	echo "[tubaina] Detected -showNotes option"
 	echo "[tubaina] Transforming <!--@note --> in md boxes"
 
-	IFS=""
-
 	for file in "$BUILDDIR"/*.md; do
 		inside_note=false
 
