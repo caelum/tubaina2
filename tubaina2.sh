@@ -111,12 +111,10 @@ cat <<END > "$BUILDDIR"/book.json
 	"title": "$TITLE",
 	"description": "$DESCRIPTION",
 	"author": "$AUTHOR",
-	
-	"plugins": ["cdc", "$THEME"],
-	
-	"links": {
-		"gitbook": false
-	}
+
+    "firstChapter": "${first_chapter%.*}",
+
+	"plugins": ["cdc", "$THEME"]
 }
 END
 
@@ -185,22 +183,24 @@ function run {
 
 function html {
 	run gitbook build
-	echo "[tubaina] Generated HTML output: $BUILDIR/_book/"
+    run mv _book/index.html _book/"${first_chapter%.*}.html"
+    run mv _book/GLOSSARY.html _book/index.html
+	echo "[tubaina] Generated HTML output: $BUILDDIR/_book/"
 }
 
 function epub {
 	run gitbook epub
-	echo "[tubaina] Generated epub: $BUILDIR/book.epub"
+	echo "[tubaina] Generated epub: $BUILDDIR/book.epub"
 }
 
 function mobi {
 	run gitbook mobi
-	echo "[tubaina] Generated mobi: $BUILDIR/book.mobi"
+	echo "[tubaina] Generated mobi: $BUILDDIR/book.mobi"
 }
 
 function pdf {
 	run gitbook pdf
-	echo "[tubaina] Generated PDF: $BUILDIR/book.pdf"
+	echo "[tubaina] Generated PDF: $BUILDDIR/book.pdf"
 }
 
 # What to build
