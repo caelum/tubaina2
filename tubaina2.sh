@@ -180,10 +180,16 @@ function run {
 }
 
 function html {
-	run gitbook build
+    if [ -d "$BUILDDIR"/intro-html ]; then
+        mv "$BUILDDIR"/intro-html "$BUILDDIR"/intro
+    fi
+
+    run gitbook build
+
     run mv _book/index.html _book/"${first_chapter%.*}.html"
     run mv _book/GLOSSARY.html _book/index.html
-	echo "[tubaina] Generated HTML output: $BUILDDIR/_book/"
+
+    echo "[tubaina] Generated HTML output: $BUILDDIR/_book/"
 }
 
 function epub {
