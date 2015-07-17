@@ -77,12 +77,10 @@ echo "[tubaina]   THEME        = $THEME"
 echo "[tubaina]   DOCKER_IMAGE = $DOCKER_IMAGE"
 
 # first chapter as README
-first_chapter_path="$(ls $SRCDIR/*.md | sort -n | head -1)"
+first_chapter_path="$(ls $BUILDDIR/*.md | sort -n | head -1)"
 first_chapter="${first_chapter_path##*/}"
-if [ -f "$BUILDDIR"/"$first_chapter" ]; then
-	echo "[tubaina] Renaming $first_chapter to README.md"
-	mv "$BUILDDIR"/"$first_chapter" "$BUILDDIR"/README.md
-fi
+echo "[tubaina] Renaming $first_chapter to README.md"
+mv "$BUILDDIR"/"$first_chapter" "$BUILDDIR"/README.md
 
 # generates SUMMARY
 echo "[tubaina] Generating SUMMARY"
@@ -90,6 +88,11 @@ echo "# Summary" > "$BUILDDIR"/SUMMARY.md
 
 for file_path in "$SRCDIR"/*.md; do
 	file="${file_path##*/}"
+	
+	#skips possible README.md in source dir
+	if [ "${file^^}" == "README.MD" ]; then
+		continue
+	fi
 
 	if [ "$file_path" == "$SRCDIR"/"$first_chapter" ]; then
 		file="README.md"
