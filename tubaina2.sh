@@ -49,7 +49,7 @@ echo "[tubaina] Copying project to $BUILDDIR"
 cp -R "$SRCDIR"/* "$BUILDDIR"/
 
 # remove possible README file, since it's special in gitbook
-rm -f "$BUILDDIR"/README.md
+find "$BUILDDIR"/ -maxdepth 1 -iname "README.md" -exec rm {} \;
 
 # Get book info
 if [ -f "$SRCDIR"/../book.properties ]; then
