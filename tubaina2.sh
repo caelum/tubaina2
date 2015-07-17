@@ -102,7 +102,11 @@ for file_path in "$SRCDIR"/*.md; do
 	title=$(head -1 "$file_path" | sed -e 's/^#[ \t]*//g')
 	echo "[tubaina]   $file: $title"
 
-	echo "* [$title]($file)" >> "$BUILDDIR"/SUMMARY.md
+	if [[ "$OPTS" == *-html* ]] && [ $file != "README.md" ]; then
+		echo "* [$title](${file%.*}/index.md)" >> "$BUILDDIR"/SUMMARY.md
+	else
+		echo "* [$title]($file)" >> "$BUILDDIR"/SUMMARY.md
+	fi
 
 	# Remove first line (chapter title)
 	tail -n +2 "$BUILDDIR"/"$file" > "$BUILDDIR"/.tmp
@@ -186,14 +190,34 @@ function run {
 }
 
 function html {
+	CHAPTERS=()
+	for file_path in "$BUILDDIR"/*.md; do
+		file="${file_path##*/}"
+		if [ "$file" != "README.md" ] && [ "$file" != "SUMMARY.md" ]; then
+			folder="$BUILDDIR"/"${file%.*}"
+			CHAPTERS+=(${file%.*})
+			mkdir -p "$folder"; mv "$file_path" "$folder"/index.md
+		fi
+	done
+	
     if [ -d "$BUILDDIR"/intro-html ]; then
         mv "$BUILDDIR"/intro-html "$BUILDDIR"/intro
     fi
 
     run gitbook build
+		
+	run sed -i "s/<a\(.*\)href=\"..\/\(.*\)index.html\"/<a\1href=\"..\/${first_chapter%.*}\/index.html\"/" _book/"${CHAPTERS[0]}"/index.html
+	for folder in ${CHAPTERS[@]}; do
+		run sed -i "s/<img\(.*\)src=\"\(.*\)\"/<img\1src=\"..\/\2\"/" _book/"$folder"/index.html
+		run sed -i "s/<img\(.*\)src=\"..\/http\(.*\)\"/<img\1src=\"http\2\"/" _book/"$folder"/index.html
+	done
 
-    run mv _book/index.html _book/"${first_chapter%.*}.html"
+    run mkdir -p _book/"${first_chapter%.*}"
+	run mv _book/index.html _book/"${first_chapter%.*}"/index.html
     run mv _book/GLOSSARY.html _book/index.html
+	run sed -i "s/${first_chapter%.*}/${first_chapter%.*}\/index/" _book/index.html
+	run sed -i "s/<link\(.*\)href=\"\(.*\)\"/<link\1href=\"..\/\2\"/" _book/"${first_chapter%.*}"/index.html
+	run sed -i "s/<a\(.*\)href=\".\/\(.*\)index.html\"/<a\1href=\"..\/\2index.html\"/" _book/"${first_chapter%.*}"/index.html
 
     echo "[tubaina] Generated HTML output: $BUILDDIR/_book/"
 }
