@@ -41,7 +41,7 @@ echo "[tubaina] Generating book from $SRCDIR"
 
 BUILDDIR="$SRCDIR"/.build
 
-rm -rf "$BUILDDIR"
+rm -rf "$BUILDDIR" 2> /dev/null
 mkdir -p "$BUILDDIR"
 
 # copy directory to tmp
