@@ -183,9 +183,9 @@ fi
 function run {
 	if [[ "$OPTS" == *-native* ]]; then
 		cd "$BUILDDIR"
-		$@
+		"$@"
 	else
-		docker run --rm -v "$BUILDDIR":/data $DOCKER_IMAGE $@
+		docker run --rm -v "$BUILDDIR":/data $DOCKER_IMAGE "$@"
 	fi | while read line; do echo "[gitbook] $line"; done
 }
 
@@ -205,21 +205,29 @@ function html {
     fi
 
     run gitbook build
-		
-	run sed -i "s/<a\(.*\)href=\"..\/\(.*\)index.html\"/<a\1href=\"..\/${first_chapter%.*}\/index.html\"/" _book/"${CHAPTERS[0]}"/index.html
+    echo "[tubaina] Generated HTML output: $BUILDDIR/_book/"
+
+    echo "[tubaina] Fixing navigation reference in $BUILDDIR/_book/${CHAPTERS[0]}/index.html"
+	run sed -i "s|<a href=\"\.\./index.html\" class=\"nav-simple-chapter\"|<a href=\"../${first_chapter%.*}/index.html\" class=\"nav-simple-chapter\"|" _book/"${CHAPTERS[0]}"/index.html
+
 	for folder in ${CHAPTERS[@]}; do
-		run sed -i "s/<img\(.*\)src=\"\(.*\)\"/<img\1src=\"..\/\2\"/" _book/"$folder"/index.html
-		run sed -i "s/<img\(.*\)src=\"..\/http\(.*\)\"/<img\1src=\"http\2\"/" _book/"$folder"/index.html
+		echo "[tubaina] Fixing image references in $BUILDDIR/_book/$folder/index.html"
+		run sed -i '/src="http:/! { s|<img src="\(.*\)"|<img src="../\1/"| }' _book/"$folder"/index.html
 	done
 
+	echo "[tubaina] Fixing Table of Contents"
     run mkdir -p _book/"${first_chapter%.*}"
 	run mv _book/index.html _book/"${first_chapter%.*}"/index.html
     run mv _book/GLOSSARY.html _book/index.html
-	run sed -i "s/${first_chapter%.*}/${first_chapter%.*}\/index/" _book/index.html
-	run sed -i "s/<link\(.*\)href=\"\(.*\)\"/<link\1href=\"..\/\2\"/" _book/"${first_chapter%.*}"/index.html
-	run sed -i "s/<a\(.*\)href=\".\/\(.*\)index.html\"/<a\1href=\"..\/\2index.html\"/" _book/"${first_chapter%.*}"/index.html
 
-    echo "[tubaina] Generated HTML output: $BUILDDIR/_book/"
+	echo "[tubaina] Fixing references in $BUILDDIR/_book/index.html"
+	run sed -i "s|${first_chapter%.*}|${first_chapter%.*}/index|" _book/index.html
+
+	echo "[tubaina] Fixing references in $BUILDDIR/_book/${first_chapter%.*}/index.html"
+	run sed -i "s|<link rel=\"stylesheet\" href=\"\(.*\)\"|<link rel=\"stylesheet\" href=\"../\1\"|" _book/"${first_chapter%.*}"/index.html
+	run sed -i "s|<a href=\"./\(.*\)index.html\"|<a href=\"../\1index.html\"|" _book/"${first_chapter%.*}"/index.html
+	run sed -i '/src="http:/! { s|<img src="\(.*\)"|<img src="../\1/"| }' _book/"${first_chapter%.*}"/index.html
+
 }
 
 function epub {
