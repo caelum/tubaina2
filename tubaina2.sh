@@ -103,7 +103,9 @@ for file_path in "$SRCDIR"/*.md; do
 	echo "[tubaina]   $file: $title"
 
 	if [[ "$OPTS" == *-html* ]] && [ $file != "README.md" ]; then
-		echo "* [$title](${file%.*}/index.md)" >> "$BUILDDIR"/SUMMARY.md
+		folder="${file##*[0-9]-}" #strip leading numbers and hyphen
+		folder="${folder%.*}" #strip file extension
+		echo "* [$title]($folder/index.md)" >> "$BUILDDIR"/SUMMARY.md
 	else
 		echo "* [$title]($file)" >> "$BUILDDIR"/SUMMARY.md
 	fi
@@ -194,8 +196,10 @@ function html {
 	for file_path in "$BUILDDIR"/*.md; do
 		file="${file_path##*/}"
 		if [ "$file" != "README.md" ] && [ "$file" != "SUMMARY.md" ]; then
-			folder="$BUILDDIR"/"${file%.*}"
-			CHAPTERS+=(${file%.*})
+			file="${file##*[0-9]-}" #strip leading numbers and hyphen
+			file="${file%.*}" #strip file extension
+			folder="$BUILDDIR"/"$file"
+			CHAPTERS+=("$file")
 			mkdir -p "$folder"; mv "$file_path" "$folder"/index.md
 		fi
 	done
@@ -207,8 +211,11 @@ function html {
     run gitbook build
     echo "[tubaina] Generated HTML output: $BUILDDIR/_book/"
 
+	first="${first_chapter##*[0-9]-}" #strip leading numbers and hyphen
+	first="${first%.*}" #strip file extension
+
     echo "[tubaina] Fixing navigation reference in $BUILDDIR/_book/${CHAPTERS[0]}/index.html"
-	run sed -i "s|<a href=\"\.\./index.html\" class=\"nav-simple-chapter\"|<a href=\"../${first_chapter%.*}/index.html\" class=\"nav-simple-chapter\"|" _book/"${CHAPTERS[0]}"/index.html
+	run sed -i "s|<a href=\"\.\./index.html\" class=\"nav-simple-chapter\"|<a href=\"../$first/index.html\" class=\"nav-simple-chapter\"|" _book/"${CHAPTERS[0]}"/index.html
 
 	for folder in ${CHAPTERS[@]}; do
 		echo "[tubaina] Fixing image references in $BUILDDIR/_book/$folder/index.html"
@@ -216,21 +223,21 @@ function html {
 	done
 
 	echo "[tubaina] Fixing Table of Contents"
-    run mkdir -p _book/"${first_chapter%.*}"
-	run mv _book/index.html _book/"${first_chapter%.*}"/index.html
+    run mkdir -p _book/"$first"
+	run mv _book/index.html _book/"$first"/index.html
     run mv _book/GLOSSARY.html _book/index.html
 
 	echo "[tubaina] Fixing references in $BUILDDIR/_book/index.html"
-	run sed -i "s|${first_chapter%.*}|${first_chapter%.*}/index|" _book/index.html
+	run sed -i "s|${first_chapter%.*}|$first/index|" _book/index.html
 
-	echo "[tubaina] Fixing image references in $BUILDDIR/_book/${first_chapter%.*}/index.html"
-	run sed -i '/src="http:/! { s|<img src="\(.*\)"|<img src="../\1/"| }' _book/"${first_chapter%.*}"/index.html
+	echo "[tubaina] Fixing image references in $BUILDDIR/_book/$first/index.html"
+	run sed -i '/src="http:/! { s|<img src="\(.*\)"|<img src="../\1/"| }' _book/"$first"/index.html
 
-	echo "[tubaina] Fixing css references in $BUILDDIR/_book/${first_chapter%.*}/index.html"
-	run sed -i "s|<link rel=\"stylesheet\" href=\"\(.*\)\"|<link rel=\"stylesheet\" href=\"../\1\"|" _book/"${first_chapter%.*}"/index.html
+	echo "[tubaina] Fixing css references in $BUILDDIR/_book/$first/index.html"
+	run sed -i "s|<link rel=\"stylesheet\" href=\"\(.*\)\"|<link rel=\"stylesheet\" href=\"../\1\"|" _book/"${first%.*}"/index.html
 
-	echo "[tubaina] Fixing navigation references in $BUILDDIR/_book/${first_chapter%.*}/index.html"
-	run sed -i "s|<a href=\"./\(.*\)index.html\"|<a href=\"../\1index.html\"|" _book/"${first_chapter%.*}"/index.html
+	echo "[tubaina] Fixing navigation references in $BUILDDIR/_book/$first/index.html"
+	run sed -i "s|<a href=\"./\(.*\)index.html\"|<a href=\"../\1index.html\"|" _book/"$first"/index.html
 
 }
 
