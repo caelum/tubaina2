@@ -223,10 +223,14 @@ function html {
 	echo "[tubaina] Fixing references in $BUILDDIR/_book/index.html"
 	run sed -i "s|${first_chapter%.*}|${first_chapter%.*}/index|" _book/index.html
 
-	echo "[tubaina] Fixing references in $BUILDDIR/_book/${first_chapter%.*}/index.html"
-	run sed -i "s|<link rel=\"stylesheet\" href=\"\(.*\)\"|<link rel=\"stylesheet\" href=\"../\1\"|" _book/"${first_chapter%.*}"/index.html
-	run sed -i "s|<a href=\"./\(.*\)index.html\"|<a href=\"../\1index.html\"|" _book/"${first_chapter%.*}"/index.html
+	echo "[tubaina] Fixing image references in $BUILDDIR/_book/${first_chapter%.*}/index.html"
 	run sed -i '/src="http:/! { s|<img src="\(.*\)"|<img src="../\1/"| }' _book/"${first_chapter%.*}"/index.html
+
+	echo "[tubaina] Fixing css references in $BUILDDIR/_book/${first_chapter%.*}/index.html"
+	run sed -i "s|<link rel=\"stylesheet\" href=\"\(.*\)\"|<link rel=\"stylesheet\" href=\"../\1\"|" _book/"${first_chapter%.*}"/index.html
+
+	echo "[tubaina] Fixing navigation references in $BUILDDIR/_book/${first_chapter%.*}/index.html"
+	run sed -i "s|<a href=\"./\(.*\)index.html\"|<a href=\"../\1index.html\"|" _book/"${first_chapter%.*}"/index.html
 
 }
 
