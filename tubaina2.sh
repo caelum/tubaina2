@@ -220,6 +220,9 @@ function html {
 	for folder in ${CHAPTERS[@]}; do
 		echo "[tubaina] Fixing image references in $BUILDDIR/_book/$folder/index.html"
 		run sed -i '/src="http:/! { s|<img src="\(.*\)"|<img src="../\1/"| }' _book/"$folder"/index.html
+
+		echo "[tubaina] Removing index.html from links in $BUILDDIR/_book/$folder/index.html"
+		run sed -i 's|index.html||' _book/"$folder"/index.html
 	done
 
 	echo "[tubaina] Fixing Table of Contents"
@@ -230,6 +233,10 @@ function html {
 	echo "[tubaina] Fixing references in $BUILDDIR/_book/index.html"
 	run sed -i "s|${first_chapter%.*}|$first/index|" _book/index.html
 
+	echo "[tubaina] Removing index.html from links in $BUILDDIR/_book/index.html"
+	run sed -i 's|index.html||' _book/index.html
+
+
 	echo "[tubaina] Fixing image references in $BUILDDIR/_book/$first/index.html"
 	run sed -i '/src="http:/! { s|<img src="\(.*\)"|<img src="../\1/"| }' _book/"$first"/index.html
 
@@ -238,6 +245,9 @@ function html {
 
 	echo "[tubaina] Fixing navigation references in $BUILDDIR/_book/$first/index.html"
 	run sed -i "s|<a href=\"./\(.*\)index.html\"|<a href=\"../\1index.html\"|" _book/"$first"/index.html
+
+	echo "[tubaina] Removing index.html from links in $BUILDDIR/_book/$first/index.html"
+	run sed -i 's|index.html||' _book/"$first"/index.html
 
 }
 
