@@ -219,10 +219,14 @@ function html {
 
 	for folder in ${CHAPTERS[@]}; do
 		echo "[tubaina] Fixing image references in $BUILDDIR/_book/$folder/index.html"
+		#puts ../ every image that is not from http://
 		run sed -i '/src="http:/! { s|<img src="\(.*\)"|<img src="../\1/"| }' _book/"$folder"/index.html
 
 		echo "[tubaina] Removing index.html from links in $BUILDDIR/_book/$folder/index.html"
-		run sed -i 's|index.html||' _book/"$folder"/index.html
+		#removes reference to index in the top of the html
+		run sed -i 's|<a href=\"\.\./index.html\" class=\"book-title\"|<a href=\"\.\./\" class=\"book-title\"|' _book/"$folder"/index.html
+		#removes reference to previous and next in the nav
+		run sed -i 's|<a href=\"\(.*\)index.html\" class=\"nav-simple-chapter\"|<a href=\"\1\" class=\"nav-simple-chapter\"|' _book/"$folder"/index.html
 	done
 
 	echo "[tubaina] Fixing Table of Contents"
@@ -234,10 +238,11 @@ function html {
 	run sed -i "s|${first_chapter%.*}|$first/index|" _book/index.html
 
 	echo "[tubaina] Removing index.html from links in $BUILDDIR/_book/index.html"
+	#safe to remove every index.html, as we control toc generation
 	run sed -i 's|index.html||' _book/index.html
 
-
 	echo "[tubaina] Fixing image references in $BUILDDIR/_book/$first/index.html"
+	#puts ../ every image that is not from http://
 	run sed -i '/src="http:/! { s|<img src="\(.*\)"|<img src="../\1/"| }' _book/"$first"/index.html
 
 	echo "[tubaina] Fixing css references in $BUILDDIR/_book/$first/index.html"
@@ -247,7 +252,10 @@ function html {
 	run sed -i "s|<a href=\"./\(.*\)index.html\"|<a href=\"../\1index.html\"|" _book/"$first"/index.html
 
 	echo "[tubaina] Removing index.html from links in $BUILDDIR/_book/$first/index.html"
-	run sed -i 's|index.html||' _book/"$first"/index.html
+	#removes reference to index in the top of the html
+	run sed -i 's|<a href=\"\.\./index.html\" class=\"book-title\"|<a href=\"\.\./\" class=\"book-title\"|' _book/"$first"/index.html
+	#removes reference to previous and next in the nav
+	run sed -i 's|<a href=\"/\(.*\)index.html\" class=\"nav-simple-chapter\"|<a href=\"\1\" class=\"nav-simple-chapter\"|' _book/"$first"/index.html
 
 }
 
