@@ -63,7 +63,7 @@ fi
 [ "$TITLE" ] || TITLE="Untitled {define one in book.properties}"
 [ "$DESCRIPTION" ] || DESCRIPTION="No description {define one in book.properties}"
 [ "$AUTHOR" ] || AUTHOR="Anonymous {define an author in book.properties}"
-[ "$CODE" ] || CODE="NO-CODE"
+[ "$BOOK_CODE" ] || BOOK_CODE="${SRCDIR##*/}"
 [ "$THEME" ] || THEME="cdc-tema"
 [ "$DOCKER_IMAGE" ] || DOCKER_IMAGE="cdc/gitbook"
 
@@ -72,7 +72,7 @@ echo "[tubaina] Using these options:"
 echo "[tubaina]   TITLE        = $TITLE"
 echo "[tubaina]   DESCRIPTION  = $DESCRIPTION"
 echo "[tubaina]   AUTHOR       = $AUTHOR"
-echo "[tubaina]   CODE         = $CODE"
+echo "[tubaina]   BOOK_CODE    = $BOOK_CODE"
 echo "[tubaina]   THEME        = $THEME"
 echo "[tubaina]   DOCKER_IMAGE = $DOCKER_IMAGE"
 
@@ -123,7 +123,7 @@ cat <<END > "$BUILDDIR"/book.json
 	"description": "$DESCRIPTION",
 	"author": "$AUTHOR",
 
-	"code": "$CODE",
+	"bookCode": "$BOOK_CODE",
 	"firstChapter": "${first_chapter%.*}",
 
 	"plugins": ["cdc", "$THEME"]
