@@ -25,7 +25,7 @@ fi
 
 # First argument (optional) is a folder
 if [ "$1" ] && [[ "$1" != -* ]]; then
-	SRCDIR=`cd "$1"; pwd`
+	SRCDIR=`cd "$1" && pwd`
 	OPTS=${@:2}
 else
 	SRCDIR="$(pwd)"	
@@ -33,7 +33,7 @@ else
 fi
 
 if [ ! -d "$SRCDIR" ]; then
-	echo "Error: $SRCDIR isn't a folder"
+	echo "Error: $1 isn't a folder"
 	exit 1
 fi
 
