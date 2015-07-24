@@ -90,7 +90,7 @@ for file_path in "$SRCDIR"/*.md; do
 	file="${file_path##*/}"
 	
 	#skips possible README.md in source dir
-	if [ "${file^^}" == "README.MD" ]; then
+	if [ "$(echo "$file" | tr '[:lower:]' '[:upper:]')" == "README.MD" ]; then
 		continue
 	fi
 
