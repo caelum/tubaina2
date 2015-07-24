@@ -47,6 +47,7 @@ mkdir -p "$BUILDDIR"
 # copy directory to tmp
 echo "[tubaina] Copying project to $BUILDDIR"
 cp -R "$SRCDIR"/* "$BUILDDIR"/
+cp "$SRCDIR"/.bookignore "$BUILDDIR"/
 
 # remove possible README file, since it's special in gitbook
 find "$BUILDDIR"/ -maxdepth 1 -iname "README.md" -exec rm {} \;
