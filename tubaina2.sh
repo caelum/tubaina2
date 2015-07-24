@@ -130,15 +130,20 @@ cat <<END > "$BUILDDIR"/book.json
 }
 END
 
+# Build using docker or in the OS
+function run {
+	if [[ "$OPTS" == *-native* ]]; then
+		cd "$BUILDDIR"
+		"$@"
+	else
+		docker run --rm -v "$BUILDDIR":/data $DOCKER_IMAGE "$@"
+	fi | while read line; do echo "[gitbook] $line"; done
+}
+
 # Empty cover
 if [ ! -f "$BUILDDIR"/cover.jpg ]; then
 	echo "[tubaina][warning] You don't have a cover.jpg"
-	convert -size 3200x4600 -pointsize 100  \
-		-fill red -draw "text 100,1000 \"[AUTO GENERATED UGLY COVER]\"" \
-		-fill red -draw "text 100,1200 \"[PLEASE ADD YOUR OWN cover.jpg]\"" \
-		-fill white -draw "text 100,2500 \"$TITLE\"" \
-		xc:orange \
-		"$BUILDDIR"/cover.jpg &> /dev/null
+	run convert -size 3200x4600 -pointsize 100 -fill red -draw "text 100,1000 \"[AUTO GENERATED UGLY COVER]\"" -fill red -draw "text 100,1200 \"[PLEASE ADD YOUR OWN cover.jpg]\"" -fill white -draw "text 100,2500 \"$TITLE\"" xc:orange cover.jpg	&> /dev/null
 fi
 
 # Transform instructor notes in boxes
@@ -180,16 +185,6 @@ if [[ "$OPTS" == *-showNotes* ]]; then
 		mv "$BUILDDIR"/.tmp "$file"
 	done
 fi
-
-# Build using docker or in the OS
-function run {
-	if [[ "$OPTS" == *-native* ]]; then
-		cd "$BUILDDIR"
-		"$@"
-	else
-		docker run --rm -v "$BUILDDIR":/data $DOCKER_IMAGE "$@"
-	fi | while read line; do echo "[gitbook] $line"; done
-}
 
 function html {
 	CHAPTERS=()
