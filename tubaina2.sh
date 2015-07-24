@@ -138,7 +138,7 @@ function run {
 		"$@"
 	else
 		docker run --rm -v "$BUILDDIR":/data $DOCKER_IMAGE "$@"
-	fi | while read line; do echo "[gitbook] $line"; done
+	fi | while read line; do echo "[$1] $line"; done
 }
 
 # Empty cover
