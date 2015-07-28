@@ -218,7 +218,7 @@ function html {
 		#adds ../ to every image which src is not http://
 		#removes index.html from the top
 		#removes index.html from previous and next navs
-		run sed -i -e '/src="http:/! { s|<img src="\(.*\)"|<img src="../\1/"| }' -e 's|<a href=\"\.\./index.html\" class=\"book-title\"|<a href=\"\.\./\" class=\"book-title\"|' -e 's|<a href=\"\(.*\)index.html\" class=\"nav-simple-chapter\"|<a href=\"\1\" class=\"nav-simple-chapter\"|' _book/"$folder"/index.html
+		run sed -i -e '/src="http:/! { s|<img src="\(.*\)"|<img src="../\1"| }' -e 's|<a href=\"\.\./index.html\" class=\"book-title\"|<a href=\"\.\./\" class=\"book-title\"|' -e 's|<a href=\"\(.*\)index.html\" class=\"nav-simple-chapter\"|<a href=\"\1\" class=\"nav-simple-chapter\"|' _book/"$folder"/index.html
 	done
 
 	echo "[tubaina] Fixing Table of Contents"
@@ -236,7 +236,7 @@ function html {
 	#adds ../ to links
 	#removes index.html from the top
 	#removes index.html from previous and next navs
-	run sed -i -e '/src="http:/! { s|<img src="\(.*\)"|<img src="../\1/"| }' -e 's|<link rel=\"stylesheet\" href=\"\(.*\)\"|<link rel=\"stylesheet\" href=\"../\1\"|' -e 's|<a href=\"./\(.*\)index.html\"|<a href=\"../\1index.html\"|' -e 's|<a href=\"\.\./index.html\" class=\"book-title\"|<a href=\"\.\./\" class=\"book-title\"|' -e 's|<a href=\"\.\./\(.*\)index.html\" class=\"nav-simple-chapter\"|<a href=\"\.\./\1\" class=\"nav-simple-chapter\"|' _book/"$first"/index.html
+	run sed -i -e '/src="http:/! { s|<img src="\(.*\)"|<img src="../\1"| }' -e 's|<link rel=\"stylesheet\" href=\"\(.*\)\"|<link rel=\"stylesheet\" href=\"../\1\"|' -e 's|<a href=\"./\(.*\)index.html\"|<a href=\"../\1index.html\"|' -e 's|<a href=\"\.\./index.html\" class=\"book-title\"|<a href=\"\.\./\" class=\"book-title\"|' -e 's|<a href=\"\.\./\(.*\)index.html\" class=\"nav-simple-chapter\"|<a href=\"\.\./\1\" class=\"nav-simple-chapter\"|' _book/"$first"/index.html
 
 }
 
