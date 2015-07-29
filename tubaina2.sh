@@ -15,6 +15,7 @@ if [[ "$@" == *-help* ]]; then
 	echo '  TITLE="Your Title"'
 	echo '  DESCRIPTION="Book description"'
 	echo '  AUTHOR="Mr. You"'
+	echo '  BOOK_CODE="XPTO"'
 	echo '  THEME="cdc-tema"'
 	echo '  DOCKER_IMAGE="cdc/gitbook"'
 	echo
