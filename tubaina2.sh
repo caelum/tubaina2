@@ -28,7 +28,7 @@ if [ "$1" ] && [[ "$1" != -* ]]; then
 	SRCDIR=`cd "$1" && pwd`
 	OPTS=${@:2}
 else
-	SRCDIR="$(pwd)"	
+	SRCDIR="$(pwd)"
 	OPTS=$@
 fi
 
@@ -47,7 +47,7 @@ mkdir -p "$BUILDDIR"
 # copy directory to tmp
 echo "[tubaina] Copying project to $BUILDDIR"
 cp -R "$SRCDIR"/* "$BUILDDIR"/
-cp "$SRCDIR"/.bookignore "$BUILDDIR"/
+cp "$SRCDIR"/.bookignore "$BUILDDIR"/ 2> /dev/null
 
 # remove possible README file, since it's special in gitbook
 find "$BUILDDIR"/ -maxdepth 1 -iname "README.md" -exec rm {} \;
@@ -89,7 +89,7 @@ echo "# Summary" > "$BUILDDIR"/SUMMARY.md
 
 for file_path in "$SRCDIR"/*.md; do
 	file="${file_path##*/}"
-	
+
 	#skips possible README.md in source dir
 	if [ "$(echo "$file" | tr '[:lower:]' '[:upper:]')" == "README.MD" ]; then
 		continue
@@ -98,7 +98,7 @@ for file_path in "$SRCDIR"/*.md; do
 	if [ "$file_path" == "$SRCDIR"/"$first_chapter" ]; then
 		file="README.md"
 	fi
-	
+
 	# Extract first line (expects h1 syntax)
 	title=$(head -1 "$file_path" | sed -e 's/^#[ \t]*//g')
 	echo "[tubaina]   $file: $title"
@@ -157,7 +157,7 @@ if [[ "$OPTS" == *-showNotes* ]]; then
 
 		cat "$file" | while read -r line; do
 
-			if [[ $inside_note == true ]]; then 
+			if [[ $inside_note == true ]]; then
 				echo "> $line" | sed -e 's/-->$//'
 
 				if [[ $line == *--\> ]]; then
@@ -199,7 +199,7 @@ function html {
 			mkdir -p "$folder"; mv "$file_path" "$folder"/index.md
 		fi
 	done
-	
+
     if [ -d "$BUILDDIR"/intro-html ]; then
         mv "$BUILDDIR"/intro-html "$BUILDDIR"/intro
     fi
@@ -211,7 +211,7 @@ function html {
 	first="${first%.*}" #strip file extension
 
 	echo "[tubaina] Fixing navigation to first chapter in $BUILDDIR/_book/${CHAPTERS[0]}/index.html"
-	run sed -i "s|<a href=\"\.\./index.html\" class=\"nav-simple-chapter\"|<a href=\"../$first/index.html\" class=\"nav-simple-chapter\"|" _book/"${CHAPTERS[0]}"/index.html 
+	run sed -i "s|<a href=\"\.\./index.html\" class=\"nav-simple-chapter\"|<a href=\"../$first/index.html\" class=\"nav-simple-chapter\"|" _book/"${CHAPTERS[0]}"/index.html
 
 	for folder in ${CHAPTERS[@]}; do
 		echo "[tubaina] Fixing references in $BUILDDIR/_book/$folder/index.html"
@@ -272,4 +272,3 @@ elif [[ "$OPTS" == *-ebooks* ]]; then
 else
     pdf
 fi
-
