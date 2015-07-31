@@ -79,43 +79,72 @@ echo "[tubaina]   THEME        = $THEME"
 echo "[tubaina]   DOCKER_IMAGE = $DOCKER_IMAGE"
 
 # first chapter as README
-first_chapter_path="$(ls $BUILDDIR/*.md | sort -n | head -1)"
+if [[ "$OPTS" == *-epub* || "$OPTS" == *-mobi* ]] && [ -d "$BUILDDIR/intro" ]; then
+    first_chapter_dir="$BUILDDIR/intro"
+else
+    first_chapter_dir="$BUILDDIR"
+fi
+
+first_chapter_path="$(ls $first_chapter_dir/*.md | sort -n | head -1)"
 first_chapter="${first_chapter_path##*/}"
 echo "[tubaina] Renaming $first_chapter to README.md"
-mv "$BUILDDIR"/"$first_chapter" "$BUILDDIR"/README.md
+mv "$first_chapter_dir"/"$first_chapter" "$BUILDDIR"/README.md
 
 # generates SUMMARY
 echo "[tubaina] Generating SUMMARY"
 echo "# Summary" > "$BUILDDIR"/SUMMARY.md
 
-for file_path in "$SRCDIR"/*.md; do
-	file="${file_path##*/}"
+function summary {
+    intro="$@"
 
-	#skips possible README.md in source dir
-	if [ "$(echo "$file" | tr '[:lower:]' '[:upper:]')" == "README.MD" ]; then
-		continue
-	fi
+    folder="$SRCDIR"
+    if [ -n "$intro" ]; then
+        folder="$folder/$intro"
+    fi
 
-	if [ "$file_path" == "$SRCDIR"/"$first_chapter" ]; then
-		file="README.md"
-	fi
+    for file_path in "$folder"/*.md; do
+        # Extract first line (expects h1 syntax)
+        title=$(head -1 "$file_path" | sed -e 's/^#[ \t]*//g')
 
-	# Extract first line (expects h1 syntax)
-	title=$(head -1 "$file_path" | sed -e 's/^#[ \t]*//g')
-	echo "[tubaina]   $file: $title"
+        #file="$folder${file_path##*/}"
+        file="${file_path##*/}"
+        if [ -n "$intro" ]; then
+            file="$intro/$file"
+        fi
 
-	if [[ "$OPTS" == *-html* ]] && [ $file != "README.md" ]; then
-		folder="${file##*[0-9]-}" #strip leading numbers and hyphen
-		folder="${folder%.*}" #strip file extension
-		echo "* [$title]($folder/index.md)" >> "$BUILDDIR"/SUMMARY.md
-	else
-		echo "* [$title]($file)" >> "$BUILDDIR"/SUMMARY.md
-	fi
+        if [ "$file_path" == "$folder"/"$first_chapter" ]; then
+            file="README.md"
+        fi
 
-	# Remove first line (chapter title)
-	tail -n +2 "$BUILDDIR"/"$file" > "$BUILDDIR"/.tmp
-	mv "$BUILDDIR"/.tmp "$BUILDDIR"/"$file"
-done
+        echo "[tubaina]   $file: $title"
+
+        if [[ "$OPTS" == *-html* ]] && [ $file != "README.md" ]; then
+            chapter_folder="${file##*[0-9]-}" #strip leading numbers and hyphen
+            chapter_folder="${folder%.*}" #strip file extension
+            echo "* [$title]($chapter_folder/index.md)" >> "$BUILDDIR"/SUMMARY.md
+        else
+            echo "* [$title]($file)" >> "$BUILDDIR"/SUMMARY.md
+        fi
+
+        # Remove first line (chapter title)
+        tail -n +2 "$BUILDDIR"/"$file" > "$BUILDDIR"/.tmp
+        mv "$BUILDDIR"/.tmp "$BUILDDIR"/"$file"
+
+    done
+
+}
+
+# summary begins with intro for epub or mobi
+if [[ "$OPTS" == *-epub* || "$OPTS" == *-mobi* ]] && [ -d "$SRCDIR/intro" ]; then
+    summary "intro"
+fi
+summary
+
+if [ -d "$SRCDIR/intro" ]; then
+    num_intro_chapters=$(ls "$SRCDIR"/intro/*.md | wc -l)
+else
+    num_intro_chapters=0
+fi
 
 # book.json
 echo "[tubaina] Generating book.json"
@@ -127,6 +156,7 @@ cat <<END > "$BUILDDIR"/book.json
 
 	"bookCode": "$BOOK_CODE",
 	"firstChapter": "${first_chapter%.*}",
+	"numIntroChapters": $num_intro_chapters,
 
 	"plugins": ["cdc", "$THEME"]
 }
