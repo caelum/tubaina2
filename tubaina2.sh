@@ -103,10 +103,15 @@ function summary {
     fi
 
     for file_path in "$folder"/*.md; do
+    
+        #skips possible README.md in source dir
+        if [ "$(echo "$file" | tr '[:lower:]' '[:upper:]')" == "README.MD" ]; then
+            continue
+        fi
+    
         # Extract first line (expects h1 syntax)
         title=$(head -1 "$file_path" | sed -e 's/^#[ \t]*//g')
 
-        #file="$folder${file_path##*/}"
         file="${file_path##*/}"
         if [ -n "$intro" ]; then
             file="$intro/$file"
