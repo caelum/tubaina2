@@ -235,7 +235,7 @@ function html {
         mv "$BUILDDIR"/intro-html "$BUILDDIR"/intro
     fi
 
-    run gitbook build
+    run gitbook build -v
     echo "[tubaina] Generated HTML output: $BUILDDIR/_book/"
 
 	first="${first_chapter##*[0-9]-}" #strip leading numbers and hyphen
@@ -272,17 +272,17 @@ function html {
 }
 
 function epub {
-	run gitbook epub
+	run gitbook epub -v
 	echo "[tubaina] Generated epub: $BUILDDIR/book.epub"
 }
 
 function mobi {
-	run gitbook mobi
+	run gitbook mobi -v
 	echo "[tubaina] Generated mobi: $BUILDDIR/book.mobi"
 }
 
 function pdf {
-	run gitbook pdf
+	run gitbook pdf -v
 	echo "[tubaina] Generated PDF: $BUILDDIR/book.pdf"
 }
 
