@@ -7,7 +7,7 @@ if [[ "$@" == *-help* ]]; then
 	echo
 	echo "tubaina.sh folder/ -html -showNotes -native"
 	echo "  First argument (optional): source folder"
-	echo "  Output options: -html -epub -mobi -pdf -ebooks (optional, default pdf)"
+	echo "  Output options: -html -epub -mobi -pdf (optional, default pdf)"
 	echo "  -showNotes exposes instructor comments notes (optional, default hide notes)"
 	echo "  -native runs outside Docker (optional, default runs inside Docker)"
 	echo
@@ -146,7 +146,7 @@ fi
 
 summary
 
-if [ -d "$SRCDIR/intro" ]; then
+if [[ "$OPTS" == *-epub* || "$OPTS" == *-mobi* ]] && [ -d "$SRCDIR/intro" ]; then
     num_intro_chapters=$(ls "$SRCDIR"/intro/*.md | wc -l)
 else
     num_intro_chapters=0
@@ -302,10 +302,6 @@ elif [[ "$OPTS" == *-mobi* ]]; then
     mobi
 elif [[ "$OPTS" == *-pdf* ]]; then
     pdf
-elif [[ "$OPTS" == *-ebooks* ]]; then
-    pdf
-    epub
-    mobi
 else
     pdf
 fi
