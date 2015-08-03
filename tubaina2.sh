@@ -104,6 +104,11 @@ function summary {
 
     for file_path in "$folder"/*.md; do
     
+        file="${file_path##*/}"
+        if [ -n "$intro" ]; then
+            file="$intro/$file"
+        fi
+
         #skips possible README.md in source dir
         if [ "$(echo "$file" | tr '[:lower:]' '[:upper:]')" == "README.MD" ]; then
             continue
@@ -111,11 +116,6 @@ function summary {
     
         # Extract first line (expects h1 syntax)
         title=$(head -1 "$file_path" | sed -e 's/^#[ \t]*//g')
-
-        file="${file_path##*/}"
-        if [ -n "$intro" ]; then
-            file="$intro/$file"
-        fi
 
         if [ "$file_path" == "$folder"/"$first_chapter" ]; then
             file="README.md"
@@ -125,7 +125,7 @@ function summary {
 
         if [[ "$OPTS" == *-html* ]] && [ $file != "README.md" ]; then
             chapter_folder="${file##*[0-9]-}" #strip leading numbers and hyphen
-            chapter_folder="${folder%.*}" #strip file extension
+            chapter_folder="${chapter_folder%.*}" #strip file extension
             echo "* [$title]($chapter_folder/index.md)" >> "$BUILDDIR"/SUMMARY.md
         else
             echo "* [$title]($file)" >> "$BUILDDIR"/SUMMARY.md
@@ -143,6 +143,7 @@ function summary {
 if [[ "$OPTS" == *-epub* || "$OPTS" == *-mobi* ]] && [ -d "$SRCDIR/intro" ]; then
     summary "intro"
 fi
+
 summary
 
 if [ -d "$SRCDIR/intro" ]; then
