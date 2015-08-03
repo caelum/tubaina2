@@ -7,7 +7,7 @@ if [[ "$@" == *-help* ]]; then
 	echo
 	echo "tubaina.sh folder/ -html -showNotes -native"
 	echo "  First argument (optional): source folder"
-	echo "  Output options: -html -epub -mobi -pdf (optional, default pdf)"
+	echo "  Output options: -html -epub -mobi -pdf -ebooks (optional, default pdf)"
 	echo "  -showNotes exposes instructor comments notes (optional, default hide notes)"
 	echo "  -native runs outside Docker (optional, default runs inside Docker)"
 	echo
@@ -45,129 +45,6 @@ BUILDDIR="$SRCDIR"/.build
 rm -rf "$BUILDDIR" 2> /dev/null
 mkdir -p "$BUILDDIR"
 
-# copy directory to tmp
-echo "[tubaina] Copying project to $BUILDDIR"
-cp -R "$SRCDIR"/* "$BUILDDIR"/
-cp "$SRCDIR"/.bookignore "$BUILDDIR"/ 2> /dev/null
-
-# remove possible README file, since it's special in gitbook
-find "$BUILDDIR"/ -maxdepth 1 -iname "README.md" -exec rm {} \;
-
-# Get book info
-if [ -f "$SRCDIR"/../book.properties ]; then
-	. "$SRCDIR"/../book.properties
-fi
-if [ -f "$BUILDDIR"/book.properties ]; then
-	. "$BUILDDIR"/book.properties
-fi
-
-# Default book info
-[ "$TITLE" ] || TITLE="Untitled {define one in book.properties}"
-[ "$DESCRIPTION" ] || DESCRIPTION="No description {define one in book.properties}"
-[ "$AUTHOR" ] || AUTHOR="Anonymous {define an author in book.properties}"
-[ "$BOOK_CODE" ] || BOOK_CODE="${SRCDIR##*/}"
-[ "$THEME" ] || THEME="cdc-tema"
-[ "$DOCKER_IMAGE" ] || DOCKER_IMAGE="cdc/gitbook"
-
-# Log
-echo "[tubaina] Using these options:"
-echo "[tubaina]   TITLE        = $TITLE"
-echo "[tubaina]   DESCRIPTION  = $DESCRIPTION"
-echo "[tubaina]   AUTHOR       = $AUTHOR"
-echo "[tubaina]   BOOK_CODE    = $BOOK_CODE"
-echo "[tubaina]   THEME        = $THEME"
-echo "[tubaina]   DOCKER_IMAGE = $DOCKER_IMAGE"
-
-# first chapter as README
-if [[ "$OPTS" == *-epub* || "$OPTS" == *-mobi* ]] && [ -d "$BUILDDIR/intro" ]; then
-    first_chapter_dir="$BUILDDIR/intro"
-else
-    first_chapter_dir="$BUILDDIR"
-fi
-
-first_chapter_path="$(ls $first_chapter_dir/*.md | sort -n | head -1)"
-first_chapter="${first_chapter_path##*/}"
-echo "[tubaina] Renaming $first_chapter to README.md"
-mv "$first_chapter_dir"/"$first_chapter" "$BUILDDIR"/README.md
-
-# generates SUMMARY
-echo "[tubaina] Generating SUMMARY"
-echo "# Summary" > "$BUILDDIR"/SUMMARY.md
-
-function summary {
-    intro="$@"
-
-    folder="$SRCDIR"
-    if [ -n "$intro" ]; then
-        folder="$folder/$intro"
-    fi
-
-    for file_path in "$folder"/*.md; do
-    
-        file="${file_path##*/}"
-        if [ -n "$intro" ]; then
-            file="$intro/$file"
-        fi
-
-        #skips possible README.md in source dir
-        if [ "$(echo "$file" | tr '[:lower:]' '[:upper:]')" == "README.MD" ]; then
-            continue
-        fi
-    
-        # Extract first line (expects h1 syntax)
-        title=$(head -1 "$file_path" | sed -e 's/^#[ \t]*//g')
-
-        if [ "$file_path" == "$folder"/"$first_chapter" ]; then
-            file="README.md"
-        fi
-
-        echo "[tubaina]   $file: $title"
-
-        if [[ "$OPTS" == *-html* ]] && [ $file != "README.md" ]; then
-            chapter_folder="${file##*[0-9]-}" #strip leading numbers and hyphen
-            chapter_folder="${chapter_folder%.*}" #strip file extension
-            echo "* [$title]($chapter_folder/index.md)" >> "$BUILDDIR"/SUMMARY.md
-        else
-            echo "* [$title]($file)" >> "$BUILDDIR"/SUMMARY.md
-        fi
-
-        # Remove first line (chapter title)
-        tail -n +2 "$BUILDDIR"/"$file" > "$BUILDDIR"/.tmp
-        mv "$BUILDDIR"/.tmp "$BUILDDIR"/"$file"
-
-    done
-
-}
-
-# summary begins with intro for epub or mobi
-if [[ "$OPTS" == *-epub* || "$OPTS" == *-mobi* ]] && [ -d "$SRCDIR/intro" ]; then
-    summary "intro"
-fi
-
-summary
-
-if [[ "$OPTS" == *-epub* || "$OPTS" == *-mobi* ]] && [ -d "$SRCDIR/intro" ]; then
-    num_intro_chapters=$(ls "$SRCDIR"/intro/*.md | wc -l)
-else
-    num_intro_chapters=0
-fi
-
-# book.json
-echo "[tubaina] Generating book.json"
-cat <<END > "$BUILDDIR"/book.json
-{
-	"title": "$TITLE",
-	"description": "$DESCRIPTION",
-	"author": "$AUTHOR",
-
-	"bookCode": "$BOOK_CODE",
-	"firstChapter": "${first_chapter%.*}",
-	"numIntroChapters": $num_intro_chapters,
-
-	"plugins": ["cdc", "$THEME"]
-}
-END
-
 # Build using docker or in the OS
 function run {
 	if [[ "$OPTS" == *-native* ]]; then
@@ -178,53 +55,207 @@ function run {
 	fi | while read line; do echo "[$1] $line"; done
 }
 
-# Empty cover
-if [ ! -f "$BUILDDIR"/cover.jpg ]; then
-	echo "[tubaina][warning] You don't have a cover.jpg"
-	run convert -size 3200x4600 -pointsize 100 -fill red -draw "text 100,1000 \"[AUTO GENERATED UGLY COVER]\"" -fill red -draw "text 100,1200 \"[PLEASE ADD YOUR OWN cover.jpg]\"" -fill white -draw "text 100,2500 \"$TITLE\"" xc:orange cover.jpg	&> /dev/null
-fi
+function copy {
+	# copy directory to tmp
+	echo "[tubaina] Copying project to $BUILDDIR"
+	cp -R "$SRCDIR"/* "$BUILDDIR"/
+	cp "$SRCDIR"/.bookignore "$BUILDDIR"/ 2> /dev/null
+	# remove possible README file, since it's special in gitbook
+	find "$BUILDDIR"/ -maxdepth 1 -iname "README.md" -exec rm {} \;
+}
 
-# Transform instructor notes in boxes
-if [[ "$OPTS" == *-showNotes* ]]; then
-	echo "[tubaina] Detected -showNotes option"
-	echo "[tubaina] Transforming <!--@note --> in md boxes"
+function book_info {
+	# Get book info
+	if [ -f "$SRCDIR"/../book.properties ]; then
+		. "$SRCDIR"/../book.properties
+	fi
+	if [ -f "$BUILDDIR"/book.properties ]; then
+		. "$BUILDDIR"/book.properties
+	fi
 
-	for file in "$BUILDDIR"/*.md; do
-		inside_note=false
+	# Default book info
+	[ "$TITLE" ] || TITLE="Untitled {define one in book.properties}"
+	[ "$DESCRIPTION" ] || DESCRIPTION="No description {define one in book.properties}"
+	[ "$AUTHOR" ] || AUTHOR="Anonymous {define an author in book.properties}"
+	[ "$BOOK_CODE" ] || BOOK_CODE="${SRCDIR##*/}"
+	[ "$THEME" ] || THEME="cdc-tema"
+	[ "$DOCKER_IMAGE" ] || DOCKER_IMAGE="cdc/gitbook"
 
-		cat "$file" | while read -r line; do
+	# Log
+	echo "[tubaina] Using these options:"
+	echo "[tubaina]   TITLE        = $TITLE"
+	echo "[tubaina]   DESCRIPTION  = $DESCRIPTION"
+	echo "[tubaina]   AUTHOR       = $AUTHOR"
+	echo "[tubaina]   BOOK_CODE    = $BOOK_CODE"
+	echo "[tubaina]   THEME        = $THEME"
+	echo "[tubaina]   DOCKER_IMAGE = $DOCKER_IMAGE"
+}
 
-			if [[ $inside_note == true ]]; then
-				echo "> $line" | sed -e 's/-->$//'
+function discover_first_chapter {
+	type="$@"
+	
 
-				if [[ $line == *--\> ]]; then
-					inside_note=false
-				fi
-			else
-				if [[ $line == \<\!--*@note* ]]; then
-					echo "> **@note**"
-					echo ">"
+	# first chapter as README
+	if [[ "$type" == *epub* || "$type" == *mobi* ]] && [ -d "$BUILDDIR/intro" ]; then
+		first_chapter_dir="$BUILDDIR/intro"
+	else
+		first_chapter_dir="$BUILDDIR"
+	fi
 
-					note=$(echo $line | sed -e 's/^<!--\s*@note//;s/-->$//')
-					if [[ "$note" ]]; then
-						echo "> $note"
-					fi
+	first_chapter_path="$(ls $first_chapter_dir/*.md | sort -n | head -1)"
+	first_chapter="${first_chapter_path##*/}"
+	echo "[tubaina] Renaming $first_chapter to README.md"
+	mv "$first_chapter_dir"/"$first_chapter" "$BUILDDIR"/README.md
+}
 
-					if [[ $line != *--\> ]]; then
-						inside_note=true
-					fi
-				else
-					echo "$line"
-				fi
+function generate_summary {
+
+	type="$@"
+
+	# generates SUMMARY
+	echo "[tubaina] Generating SUMMARY"
+	echo "# Summary" > "$BUILDDIR"/SUMMARY.md
+
+	function summary {
+		intro="$@"
+
+		folder="$SRCDIR"
+		if [ -n "$intro" ]; then
+			folder="$folder/$intro"
+		fi
+
+		for file_path in "$folder"/*.md; do
+
+			file="${file_path##*/}"
+			if [ -n "$intro" ]; then
+				file="$intro/$file"
 			fi
 
-		done > "$BUILDDIR"/.tmp
+			#skips possible README.md in source dir
+			if [ "$(echo "$file" | tr '[:lower:]' '[:upper:]')" == "README.MD" ]; then
+				continue
+			fi
 
-		mv "$BUILDDIR"/.tmp "$file"
-	done
-fi
+			# Extract first line (expects h1 syntax)
+			title=$(head -1 "$file_path" | sed -e 's/^#[ \t]*//g')
+
+			if [ "$file_path" == "$folder"/"$first_chapter" ]; then
+				file="README.md"
+			fi
+
+			echo "[tubaina]   $file: $title"
+
+			if [[ "$type" == *html* ]] && [ $file != "README.md" ]; then
+				chapter_folder="${file##*[0-9]-}" #strip leading numbers and hyphen
+				chapter_folder="${chapter_folder%.*}" #strip file extension
+				echo "* [$title]($chapter_folder/index.md)" >> "$BUILDDIR"/SUMMARY.md
+			else
+				echo "* [$title]($file)" >> "$BUILDDIR"/SUMMARY.md
+			fi
+
+			# Remove first line (chapter title)
+			tail -n +2 "$BUILDDIR"/"$file" > "$BUILDDIR"/.tmp
+			mv "$BUILDDIR"/.tmp "$BUILDDIR"/"$file"
+
+		done
+
+	}
+
+	# summary begins with intro for epub or mobi
+	if [[ "$type" == *epub* || "$type" == *mobi* ]] && [ -d "$SRCDIR/intro" ]; then
+		summary "intro"
+	fi
+
+	summary
+}
+
+function generate_book_json {
+	type="$@"
+	
+	if [[ "$type" == *epub* || "$type" == *mobi* ]] && [ -d "$SRCDIR/intro" ]; then
+		num_intro_chapters=$(ls "$SRCDIR"/intro/*.md | wc -l)
+	else
+		num_intro_chapters=0
+	fi
+
+	# book.json
+	echo "[tubaina] Generating book.json"
+	cat <<END > "$BUILDDIR"/book.json
+	{
+		"title": "$TITLE",
+		"description": "$DESCRIPTION",
+		"author": "$AUTHOR",
+
+		"bookCode": "$BOOK_CODE",
+		"firstChapter": "${first_chapter%.*}",
+		"numIntroChapters": $num_intro_chapters,
+
+		"plugins": ["cdc", "$THEME"]
+	}
+END
+
+}
+
+function cover {
+	# Empty cover
+	if [ ! -f "$BUILDDIR"/cover.jpg ]; then
+		echo "[tubaina][warning] You don't have a cover.jpg"
+		run convert -size 3200x4600 -pointsize 100 -fill red -draw "text 100,1000 \"[AUTO GENERATED UGLY COVER]\"" -fill red -draw "text 100,1200 \"[PLEASE ADD YOUR OWN cover.jpg]\"" -fill white -draw "text 100,2500 \"$TITLE\"" xc:orange cover.jpg	&> /dev/null
+	fi
+}
+
+function notes {
+	# Transform instructor notes in boxes
+	if [[ "$OPTS" == *-showNotes* ]]; then
+		echo "[tubaina] Detected -showNotes option"
+		echo "[tubaina] Transforming <!--@note --> in md boxes"
+
+		for file in "$BUILDDIR"/*.md; do
+			inside_note=false
+
+			cat "$file" | while read -r line; do
+
+				if [[ $inside_note == true ]]; then
+					echo "> $line" | sed -e 's/-->$//'
+
+					if [[ $line == *--\> ]]; then
+						inside_note=false
+					fi
+				else
+					if [[ $line == \<\!--*@note* ]]; then
+						echo "> **@note**"
+						echo ">"
+
+						note=$(echo $line | sed -e 's/^<!--\s*@note//;s/-->$//')
+						if [[ "$note" ]]; then
+							echo "> $note"
+						fi
+
+						if [[ $line != *--\> ]]; then
+							inside_note=true
+						fi
+					else
+						echo "$line"
+					fi
+				fi
+
+			done > "$BUILDDIR"/.tmp
+
+			mv "$BUILDDIR"/.tmp "$file"
+		done
+	fi
+}
 
 function html {
+	echo "Generating html"
+	copy
+	book_info
+	discover_first_chapter html
+	generate_summary html
+	generate_book_json html
+	cover
+	notes
+
 	CHAPTERS=()
 	for file_path in "$BUILDDIR"/*.md; do
 		file="${file_path##*/}"
@@ -237,12 +268,12 @@ function html {
 		fi
 	done
 
-    if [ -d "$BUILDDIR"/intro-html ]; then
-        mv "$BUILDDIR"/intro-html "$BUILDDIR"/intro
-    fi
+	if [ -d "$BUILDDIR"/intro-html ]; then
+		mv "$BUILDDIR"/intro-html "$BUILDDIR"/intro
+	fi
 
-    run gitbook build -v
-    echo "[tubaina] Generated HTML output: $BUILDDIR/_book/"
+	run gitbook build -v
+	echo "[tubaina] Generated HTML output: $BUILDDIR/_book/"
 
 	first="${first_chapter##*[0-9]-}" #strip leading numbers and hyphen
 	first="${first%.*}" #strip file extension
@@ -278,16 +309,40 @@ function html {
 }
 
 function epub {
+	echo "[tubaina] Generating epub"
+	copy
+	book_info
+	discover_first_chapter epub
+	generate_summary epub
+	generate_book_json epub
+	cover
+	notes
 	run gitbook epub -v
 	echo "[tubaina] Generated epub: $BUILDDIR/book.epub"
 }
 
 function mobi {
+	echo "[tubaina] Generating mobi"
+	copy
+	book_info
+	discover_first_chapter mobi
+	generate_summary mobi
+	generate_book_json mobi
+	cover
+	notes
 	run gitbook mobi -v
 	echo "[tubaina] Generated mobi: $BUILDDIR/book.mobi"
 }
 
 function pdf {
+	echo "[tubaina] Generating pdf"
+	copy
+	book_info
+	discover_first_chapter pdf
+	generate_summary pdf
+	generate_book_json pdf
+	cover
+	notes
 	run gitbook pdf -v
 	echo "[tubaina] Generated PDF: $BUILDDIR/book.pdf"
 }
@@ -295,13 +350,17 @@ function pdf {
 # What to build
 echo "[tubaina] Building with Gitbook"
 if [[ "$OPTS" == *-html* ]]; then
-    html
+	html
 elif [[ "$OPTS" == *-epub* ]]; then
-    epub
+	epub
 elif [[ "$OPTS" == *-mobi* ]]; then
-    mobi
+	mobi
 elif [[ "$OPTS" == *-pdf* ]]; then
-    pdf
+	pdf
+elif [[ "$OPTS" == *-ebooks* ]]; then
+	pdf
+	epub
+	mobi
 else
-    pdf
+	pdf
 fi
