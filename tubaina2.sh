@@ -17,7 +17,7 @@ if [[ "$@" == *-help* ]]; then
 	echo '  AUTHOR="Mr. You"'
 	echo '  BOOK_CODE="XPTO"'
 	echo '  THEME="cdc-tema"'
-	echo '  DOCKER_IMAGE="cdc/gitbook"'
+	echo '  DOCKER_IMAGE="casadocodigo/gitbook"'
 	echo
 	echo "Also add a cover.jpg on your source folder."
 
@@ -79,7 +79,7 @@ function book_info {
 	[ "$AUTHOR" ] || AUTHOR="Anonymous {define an author in book.properties}"
 	[ "$BOOK_CODE" ] || BOOK_CODE="${SRCDIR##*/}"
 	[ "$THEME" ] || THEME="cdc-tema"
-	[ "$DOCKER_IMAGE" ] || DOCKER_IMAGE="cdc/gitbook"
+	[ "$DOCKER_IMAGE" ] || DOCKER_IMAGE="casadocodigo/gitbook"
 
 	# Log
 	echo "[tubaina] Using these options:"

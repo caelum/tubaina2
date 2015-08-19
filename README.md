@@ -15,7 +15,7 @@ On your book source folder, add a book.properties with optional book configurati
   DESCRIPTION="Book description"
   AUTHOR="Mr. You"
   THEME="cdc-tema"
-  DOCKER_IMAGE="cdc/gitbook"
+  DOCKER_IMAGE="casadocodigo/gitbook"
 
 Also add a cover.jpg on your source folder.
 ```
