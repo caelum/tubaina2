@@ -51,7 +51,10 @@ function run {
 		cd "$BUILDDIR"
 		"$@"
 	else
-		docker run --rm -e EXTRAS_DIR="$BUILDDIR"/extras -v "$BUILDDIR":/data $DOCKER_IMAGE "$@"
+        if [ -d "$BUILDDIR"/extras_env ]; then
+            EXTRAS_ENV="-e EXTRAS_DIR=/data/extras_env"
+        fi
+		docker run --rm $EXTRAS_ENV -v "$BUILDDIR":/data $DOCKER_IMAGE "$@"
 	fi | while read line; do echo "[$1] $line"; done
 }
 
@@ -338,7 +341,7 @@ function pdf {
 	echo "[tubaina] Generating pdf"
 	copy
 	if [ -d "$EXTRAS_DIR" ]; then
-		cp -R "$EXTRAS_DIR" "$BUILDDIR"/extras
+		cp -R "$EXTRAS_DIR" "$BUILDDIR"/extras_env
 	fi
 	book_info
 	discover_first_chapter pdf
