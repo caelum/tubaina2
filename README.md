@@ -9,6 +9,7 @@ tubaina.sh folder/ -html -showNotes -native
   Output options: -html -epub -mobi -pdf -ebooks (optional, default pdf)
   -showNotes exposes instructor comments notes (optional, default hide notes)
   -native runs outside Docker (optional, default runs inside Docker)
+  -dockerImage repo/image (optional, default casadocodigo/gitbook)
 
 On your book source folder, add a book.properties with optional book configurations:
   TITLE="Your Title"

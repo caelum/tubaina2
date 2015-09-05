@@ -1,7 +1,7 @@
 #!/bin/bash
 # Tubaina2.sh by @sergiolopes & @adrianoalmeida7
 
-if [[ "$@" == *-help* ]]; then
+function show_help {
 	echo "tubaina2.sh"
 	echo "  Generates a PDF book from current directory using docker."
 	echo
@@ -10,6 +10,7 @@ if [[ "$@" == *-help* ]]; then
 	echo "  Output options: -html -epub -mobi -pdf -ebooks (optional, default pdf)"
 	echo "  -showNotes exposes instructor comments notes (optional, default hide notes)"
 	echo "  -native runs outside Docker (optional, default runs inside Docker)"
+	echo "  -dockerImage repo/image (optional, default casadocodigo/gitbook)"
 	echo
 	echo "On your book source folder, add a book.properties with optional book configurations:"
 	echo '  TITLE="Your Title"'
@@ -17,26 +18,41 @@ if [[ "$@" == *-help* ]]; then
 	echo '  AUTHOR="Mr. You"'
 	echo '  BOOK_CODE="XPTO"'
 	echo '  THEME="cdc-tema"'
-	echo '  DOCKER_IMAGE="casadocodigo/gitbook"'
 	echo
 	echo "Also add a cover.jpg on your source folder."
-
-	exit 0
-fi
+}
 
 # First argument (optional) is a folder
 if [ "$1" ] && [[ "$1" != -* ]]; then
 	SRCDIR=`cd "$1" && pwd`
-	OPTS=${@:2}
 else
 	SRCDIR="$(pwd)"
-	OPTS=$@
 fi
 
 if [ ! -d "$SRCDIR" ]; then
 	echo "Error: $1 isn't a folder"
 	exit 1
 fi
+
+OPTS=`getopt -a -l dockerImage: -l showNotes -l native -l html -l epub -l mobi -l pdf -l ebooks -l help -n 'tubaina2' -- "$0" "$@"`
+if [ $? != 0 ] ; then echo; show_help; exit 1 ; fi
+eval set -- "$OPTS"
+
+DOCKER_IMAGE="casadocodigo/gitbook"
+OUTPUT_FORMAT="pdf"
+while true; do
+	case "$1" in
+		--dockerImage) DOCKER_IMAGE=$2; shift 2;;
+		--showNotes) SHOW_NOTES=true; shift;;
+		--native) NATIVE=true; shift;;
+		--html|--epub|--mobi|--pdf|--ebooks) OUTPUT_FORMAT="$1"; shift;;
+		--help) show_help; exit 0;;
+		--) shift; break;;
+		* ) break ;;
+	esac
+done
+
+echo "[tubaina] Using docker image: $DOCKER_IMAGE"
 
 echo "[tubaina] Generating book from $SRCDIR"
 
@@ -47,13 +63,13 @@ mkdir -p "$BUILDDIR"
 
 # Build using docker or in the OS
 function run {
-	if [[ "$OPTS" == *-native* ]]; then
+	if [[ $NATIVE ]]; then
 		cd "$BUILDDIR"
 		"$@"
 	else
-        if [ -d "$BUILDDIR"/extras_env ]; then
-            EXTRAS_ENV="-e EXTRAS_DIR=/data/extras_env"
-        fi
+		if [ -d "$BUILDDIR"/extras_env ]; then
+			EXTRAS_ENV="-e EXTRAS_DIR=/data/extras_env"
+		fi
 		docker run --rm $EXTRAS_ENV -v "$BUILDDIR":/data $DOCKER_IMAGE "$@"
 	fi | while read line; do echo "[$1] $line"; done
 }
@@ -82,7 +98,6 @@ function book_info {
 	[ "$AUTHOR" ] || AUTHOR="Anonymous {define an author in book.properties}"
 	[ "$BOOK_CODE" ] || BOOK_CODE="${SRCDIR##*/}"
 	[ "$THEME" ] || THEME="cdc-tema"
-	[ "$DOCKER_IMAGE" ] || DOCKER_IMAGE="casadocodigo/gitbook"
 
 	# Log
 	echo "[tubaina] Using these options:"
@@ -91,7 +106,6 @@ function book_info {
 	echo "[tubaina]   AUTHOR       = $AUTHOR"
 	echo "[tubaina]   BOOK_CODE    = $BOOK_CODE"
 	echo "[tubaina]   THEME        = $THEME"
-	echo "[tubaina]   DOCKER_IMAGE = $DOCKER_IMAGE"
 }
 
 function discover_first_chapter {
@@ -209,7 +223,7 @@ function cover {
 
 function notes {
 	# Transform instructor notes in boxes
-	if [[ "$OPTS" == *-showNotes* ]]; then
+	if [[ $SHOW_NOTES ]]; then
 		echo "[tubaina] Detected -showNotes option"
 		echo "[tubaina] Transforming <!--@note --> in md boxes"
 
@@ -355,18 +369,16 @@ function pdf {
 
 # What to build
 echo "[tubaina] Building with Gitbook"
-if [[ "$OPTS" == *-html* ]]; then
+if [[ "$OUTPUT_FORMAT" == *html* ]]; then
 	html
-elif [[ "$OPTS" == *-epub* ]]; then
+elif [[ "$OUTPUT_FORMAT" == *epub* ]]; then
 	epub
-elif [[ "$OPTS" == *-mobi* ]]; then
+elif [[ "$OUTPUT_FORMAT" == *mobi* ]]; then
 	mobi
-elif [[ "$OPTS" == *-pdf* ]]; then
+elif [[ "$OUTPUT_FORMAT" == *pdf* ]]; then
 	pdf
-elif [[ "$OPTS" == *-ebooks* ]]; then
+elif [[ "$OUTPUT_FORMAT" == *ebooks* ]]; then
 	pdf
 	epub
 	mobi
-else
-	pdf
 fi
