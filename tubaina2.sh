@@ -11,6 +11,8 @@ function show_help {
 	echo "  -showNotes exposes instructor comments notes (optional, default hide notes)"
 	echo "  -native runs outside Docker (optional, default runs inside Docker)"
 	echo "  -dockerImage repo/image (optional, default casadocodigo/gitbook)"
+	echo "  -imageRoot folder/ (optional)"
+	echo "  -help print usage"
 	echo
 	echo "On your book source folder, add a book.properties with optional book configurations:"
 	echo '  TITLE="Your Title"'
@@ -34,7 +36,7 @@ if [ ! -d "$SRCDIR" ]; then
 	exit 1
 fi
 
-OPTS=`getopt -a -l dockerImage: -l showNotes -l native -l html -l epub -l mobi -l pdf -l ebooks -l help -n 'tubaina2' -- "$0" "$@"`
+OPTS=`getopt -a -l dockerImage: -l showNotes -l native -l html -l epub -l mobi -l pdf -l ebooks -l imageRoot: -l help -n 'tubaina2' -- "$0" "$@"`
 if [ $? != 0 ] ; then echo; show_help; exit 1 ; fi
 eval set -- "$OPTS"
 
@@ -46,6 +48,7 @@ while true; do
 		--showNotes) SHOW_NOTES=true; shift;;
 		--native) NATIVE=true; shift;;
 		--html|--epub|--mobi|--pdf|--ebooks) OUTPUT_FORMAT="$1"; shift;;
+		--imageRoot) IMAGE_ROOT_FOLDER=$2; shift 2;;
 		--help) show_help; exit 0;;
 		--) shift; break;;
 		* ) break ;;
@@ -263,6 +266,15 @@ function notes {
 	fi
 }
 
+function adjust_image_root_folder {
+	if [[ $IMAGE_ROOT_FOLDER ]]; then
+		for file in "$BUILDDIR"/*.md; do
+			echo "[tubaina] Adjusting image root folder for $file"
+			sed -i -e "s|!\[\(.*\)\](\(.*\))|![\1]($IMAGE_ROOT_FOLDER/\2)|" $file
+		done
+	fi
+}
+
 function html {
 	echo "Generating html"
 	copy
@@ -272,6 +284,7 @@ function html {
 	generate_book_json html
 	cover
 	notes
+	adjust_image_root_folder
 
 	CHAPTERS=()
 	for file_path in "$BUILDDIR"/*.md; do
@@ -334,6 +347,7 @@ function epub {
 	generate_book_json epub
 	cover
 	notes
+	adjust_image_root_folder
 	run gitbook epub -v
 	echo "[tubaina] Generated epub: $BUILDDIR/book.epub"
 }
@@ -347,6 +361,7 @@ function mobi {
 	generate_book_json mobi
 	cover
 	notes
+	adjust_image_root_folder
 	run gitbook mobi -v
 	echo "[tubaina] Generated mobi: $BUILDDIR/book.mobi"
 }
@@ -363,6 +378,7 @@ function pdf {
 	generate_book_json pdf
 	cover
 	notes
+	adjust_image_root_folder
 	run gitbook pdf -v
 	echo "[tubaina] Generated PDF: $BUILDDIR/book.pdf"
 }
