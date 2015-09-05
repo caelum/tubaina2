@@ -10,7 +10,7 @@ tubaina.sh folder/ -html -showNotes -native
   -showNotes exposes instructor comments notes (optional, default hide notes)
   -native runs outside Docker (optional, default runs inside Docker)
   -dockerImage repo/image (optional, default casadocodigo/gitbook)
-  -imageRoot folder/ (optional)
+  -imageRootFolder folder/ (optional)
   -help print usage
 
 On your book source folder, add a book.properties with optional book configurations:

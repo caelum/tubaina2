@@ -11,7 +11,7 @@ function show_help {
 	echo "  -showNotes exposes instructor comments notes (optional, default hide notes)"
 	echo "  -native runs outside Docker (optional, default runs inside Docker)"
 	echo "  -dockerImage repo/image (optional, default casadocodigo/gitbook)"
-	echo "  -imageRoot folder/ (optional)"
+	echo "  -imageRootFolder folder/ (optional)"
 	echo "  -help print usage"
 	echo
 	echo "On your book source folder, add a book.properties with optional book configurations:"
@@ -36,7 +36,7 @@ if [ ! -d "$SRCDIR" ]; then
 	exit 1
 fi
 
-OPTS=`getopt -a -l dockerImage: -l showNotes -l native -l html -l epub -l mobi -l pdf -l ebooks -l imageRoot: -l help -n 'tubaina2' -- "$0" "$@"`
+OPTS=`getopt -a -l dockerImage: -l showNotes -l native -l html -l epub -l mobi -l pdf -l ebooks -l imageRootFolder: -l help -n 'tubaina2' -- "$0" "$@"`
 if [ $? != 0 ] ; then echo; show_help; exit 1 ; fi
 eval set -- "$OPTS"
 
@@ -48,7 +48,7 @@ while true; do
 		--showNotes) SHOW_NOTES=true; shift;;
 		--native) NATIVE=true; shift;;
 		--html|--epub|--mobi|--pdf|--ebooks) OUTPUT_FORMAT="$1"; shift;;
-		--imageRoot) IMAGE_ROOT_FOLDER=$2; shift 2;;
+		--imageRootFolder) IMAGE_ROOT_FOLDER=$2; shift 2;;
 		--help) show_help; exit 0;;
 		--) shift; break;;
 		* ) break ;;
