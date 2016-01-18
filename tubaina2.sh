@@ -153,6 +153,7 @@ function generate_parts {
 				file="${file_path#$BUILDDIR*/}"
 				if [ "$file" == "$first_chapter" ]; then
 					file="README.md"
+					file_path="$BUILDDIR/README.md"
 				fi
 				echo "[tubaina]   $file: $title"
 				echo "* [$title]($file)" >> "$BUILDDIR"/SUMMARY.md
