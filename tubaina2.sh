@@ -122,10 +122,45 @@ function discover_first_chapter {
 		first_chapter_dir="$BUILDDIR"
 	fi
 
-	first_chapter_path="$(ls $first_chapter_dir/*.md | sort -n | head -1)"
-	first_chapter="${first_chapter_path##*/}"
+	if ls $first_chapter_dir/*.md &> /dev/null; then
+		echo "Found .md in $first_chapter_dir"
+		first_chapter_path="$(ls $first_chapter_dir/*.md | sort -n | head -1)"
+		first_chapter="${first_chapter_path##*/}"
+	else
+		echo "Did not found .md in $first_chapter_dir. Searching for parts."
+		first_part_path="$(ls -d $first_chapter_dir/part-* | sort -n | head -1)"
+		first_chapter_path="$(ls $first_part_path/*.md | sort -n | head -2 | tail -1)"
+		first_part="${first_part_path##*/}"
+		first_chapter="$first_part/${first_chapter_path##*/}"
+	fi
+
 	echo "[tubaina] Renaming $first_chapter to README.md"
-	mv "$first_chapter_dir"/"$first_chapter" "$BUILDDIR"/README.md
+	cp "$first_chapter_dir"/"$first_chapter" "$BUILDDIR"/README.md
+
+}
+
+function generate_parts {
+	PART_HEADERS=()
+	for part_path in "$BUILDDIR/part-"*; do
+		if [ -d "$part_path" ]; then
+			first_chapter_in_part_path="$(ls $part_path/*.md | sort -n | head -1)"
+			for file_path in "$part_path"/*.md; do
+				if [ "$file_path" == "$first_chapter_in_part_path" ]; then
+					PART_HEADERS+=("\"$file_path\"")
+					continue
+				fi
+				title=$(head -1 "$file_path" | sed -e 's/^#[ \t]*//g')
+				file="${file_path#$BUILDDIR*/}"
+				if [ "$file" == "$first_chapter" ]; then
+					file="README.md"
+				fi
+				echo "[tubaina]   $file: $title"
+				echo "* [$title]($file)" >> "$BUILDDIR"/SUMMARY.md
+				tail -n +2 "$file_path" > "$BUILDDIR"/.tmp
+				mv "$BUILDDIR"/.tmp "$file_path"
+			done
+		fi
+	done
 }
 
 function generate_summary {
@@ -187,6 +222,8 @@ function generate_summary {
 	fi
 
 	summary
+
+	generate_parts
 }
 
 function generate_book_json {
@@ -199,6 +236,8 @@ function generate_book_json {
 	fi
 
 	# book.json
+	OLDIFS=$IFS
+	IFS=,
 	echo "[tubaina] Generating book.json"
 	cat <<END > "$BUILDDIR"/book.json
 	{
@@ -209,10 +248,14 @@ function generate_book_json {
 		"bookCode": "$BOOK_CODE",
 		"firstChapter": "${first_chapter%.*}",
 		"numIntroChapters": $num_intro_chapters,
+		"partHeaders": [${PART_HEADERS[*]}],
 
 		"plugins": ["cdc", "$THEME"]
+
 	}
 END
+
+	IFS=$OLDIFS
 
 }
 
