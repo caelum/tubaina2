@@ -145,12 +145,12 @@ function generate_parts {
 		if [ -d "$part_path" ]; then
 			first_chapter_in_part_path="$(ls $part_path/*.md | sort -n | head -1)"
 			for file_path in "$part_path"/*.md; do
+				file="${file_path#$BUILDDIR*/}"
 				if [ "$file_path" == "$first_chapter_in_part_path" ]; then
-					PART_HEADERS+=("\"$file_path\"")
+					PART_HEADERS+=("\"$file\"")
 					continue
 				fi
 				title=$(head -1 "$file_path" | sed -e 's/^#[ \t]*//g')
-				file="${file_path#$BUILDDIR*/}"
 				if [ "$file" == "$first_chapter" ]; then
 					file="README.md"
 					file_path="$BUILDDIR/README.md"
