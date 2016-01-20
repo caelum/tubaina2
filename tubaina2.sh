@@ -113,7 +113,7 @@ function book_info {
 
 function discover_first_chapter {
 	type="$@"
-	
+
 
 	# first chapter as README
 	if [[ "$type" == *epub* || "$type" == *mobi* ]] && [ -d "$BUILDDIR/intro" ]; then
@@ -140,6 +140,7 @@ function discover_first_chapter {
 }
 
 function generate_parts {
+	echo "[tubaina] Generating parts"
 	PART_HEADERS=()
 	for part_path in "$BUILDDIR/part-"*; do
 		if [ -d "$part_path" ]; then
@@ -180,40 +181,44 @@ function generate_summary {
 			folder="$folder/$intro"
 		fi
 
-		for file_path in "$folder"/*.md; do
+		if ls $folder/*.md &> /dev/null; then
 
-			file="${file_path##*/}"
-			if [ -n "$intro" ]; then
-				file="$intro/$file"
-			fi
+			for file_path in "$folder"/*.md; do
 
-			#skips possible README.md in source dir
-			if [ "$(echo "$file" | tr '[:lower:]' '[:upper:]')" == "README.MD" ]; then
-				continue
-			fi
+				file="${file_path##*/}"
+				if [ -n "$intro" ]; then
+					file="$intro/$file"
+				fi
 
-			# Extract first line (expects h1 syntax)
-			title=$(head -1 "$file_path" | sed -e 's/^#[ \t]*//g')
+				#skips possible README.md in source dir
+				if [ "$(echo "$file" | tr '[:lower:]' '[:upper:]')" == "README.MD" ]; then
+					continue
+				fi
 
-			if [ "$file_path" == "$folder"/"$first_chapter" ]; then
-				file="README.md"
-			fi
+				# Extract first line (expects h1 syntax)
+				title=$(head -1 "$file_path" | sed -e 's/^#[ \t]*//g')
 
-			echo "[tubaina]   $file: $title"
+				if [ "$file_path" == "$folder"/"$first_chapter" ]; then
+					file="README.md"
+				fi
 
-			if [[ "$type" == *html* ]] && [ $file != "README.md" ]; then
-				chapter_folder="${file##*[0-9]-}" #strip leading numbers and hyphen
-				chapter_folder="${chapter_folder%.*}" #strip file extension
-				echo "* [$title]($chapter_folder/index.md)" >> "$BUILDDIR"/SUMMARY.md
-			else
-				echo "* [$title]($file)" >> "$BUILDDIR"/SUMMARY.md
-			fi
+				echo "[tubaina]   $file: $title"
 
-			# Remove first line (chapter title)
-			tail -n +2 "$BUILDDIR"/"$file" > "$BUILDDIR"/.tmp
-			mv "$BUILDDIR"/.tmp "$BUILDDIR"/"$file"
+				if [[ "$type" == *html* ]] && [ $file != "README.md" ]; then
+					chapter_folder="${file##*[0-9]-}" #strip leading numbers and hyphen
+					chapter_folder="${chapter_folder%.*}" #strip file extension
+					echo "* [$title]($chapter_folder/index.md)" >> "$BUILDDIR"/SUMMARY.md
+				else
+					echo "* [$title]($file)" >> "$BUILDDIR"/SUMMARY.md
+				fi
 
-		done
+				# Remove first line (chapter title)
+				tail -n +2 "$BUILDDIR"/"$file" > "$BUILDDIR"/.tmp
+				mv "$BUILDDIR"/.tmp "$BUILDDIR"/"$file"
+
+			done
+
+		fi
 
 	}
 
@@ -229,7 +234,7 @@ function generate_summary {
 
 function generate_book_json {
 	type="$@"
-	
+
 	if [[ "$type" == *epub* || "$type" == *mobi* ]] && [ -d "$SRCDIR/intro" ]; then
 		num_intro_chapters=$(ls "$SRCDIR"/intro/*.md | wc -l)
 	else
