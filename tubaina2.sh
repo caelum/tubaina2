@@ -274,6 +274,8 @@ function cover {
 }
 
 function notes {
+	OLDIFS=$IFS
+	IFS=
 	# Transform instructor notes in boxes
 	if [[ $SHOW_NOTES ]]; then
 		echo "[tubaina] Detected -showNotes option"
@@ -313,6 +315,7 @@ function notes {
 			mv "$BUILDDIR"/.tmp "$file"
 		done
 	fi
+	IFS=$OLDIFS
 }
 
 function adjust_image_root_folder {
