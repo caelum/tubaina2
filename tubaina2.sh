@@ -12,6 +12,7 @@ function show_help {
 	echo "  -native runs outside Docker (optional, default runs inside Docker)"
 	echo "  -dockerImage repo/image (optional, default casadocodigo/gitbook)"
 	echo "  -imageRootFolder folder/ (optional)"
+	echo "  -pdfImageQuality <default, screen, ebook, printer or prepress> (optional, default prepress)"
 	echo "  -help print usage"
 	echo
 	echo "On your book source folder, add a book.properties with optional book configurations:"
@@ -36,7 +37,7 @@ if [ ! -d "$SRCDIR" ]; then
 	exit 1
 fi
 
-OPTS=`getopt -a -l dockerImage: -l showNotes -l native -l html -l epub -l mobi -l pdf -l ebooks -l imageRootFolder: -l help -n 'tubaina2' -- "$0" "$@"`
+OPTS=`getopt -a -l dockerImage: -l showNotes -l native -l html -l epub -l mobi -l pdf -l ebooks -l imageRootFolder: -l pdfImageQuality: -l help -n 'tubaina2' -- "$0" "$@"`
 if [ $? != 0 ] ; then echo; show_help; exit 1 ; fi
 eval set -- "$OPTS"
 
@@ -49,11 +50,20 @@ while true; do
 		--native) NATIVE=true; shift;;
 		--html|--epub|--mobi|--pdf|--ebooks) OUTPUT_FORMAT="$1"; shift;;
 		--imageRootFolder) IMAGE_ROOT_FOLDER=$2; shift 2;;
+		--pdfImageQuality) PDF_IMAGE_QUALITY=$2; shift 2;;
 		--help) show_help; exit 0;;
 		--) shift; break;;
 		* ) break ;;
 	esac
 done
+
+PDF_IMAGE_QUALITY_VALUES=(default screen ebook printer prepress)
+if [[ ${PDF_IMAGE_QUALITY} && ! " ${PDF_IMAGE_QUALITY_VALUES[@]} " =~ " ${PDF_IMAGE_QUALITY} " ]]; then
+	echo "Error: Invalid -pdfImageQuality. Can be: ${PDF_IMAGE_QUALITY_VALUES[*]}"
+	exit 1
+fi
+#default value
+: ${PDF_IMAGE_QUALITY:=prepress}
 
 echo "[tubaina] Using docker image: $DOCKER_IMAGE"
 
@@ -255,6 +265,7 @@ function generate_book_json {
 		"firstChapter": "${first_chapter%.*}",
 		"numIntroChapters": $num_intro_chapters,
 		"partHeaders": [${PART_HEADERS[*]}],
+		"pdfImageQuality": "$PDF_IMAGE_QUALITY",
 
 		"plugins": ["cdc", "$THEME"]
 
