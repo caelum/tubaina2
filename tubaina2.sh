@@ -206,7 +206,7 @@ function generate_summary {
 				fi
 
 				# Extract first line (expects h1 syntax)
-				title=$(head -1 "$file_path" | sed -e 's/^#[ \t]*//g')
+				title=$(head -1 "$file_path" | sed -e 's/^#[ \t]*//g' | tr -d '\r\n')
 
 				if [ "$file_path" == "$folder"/"$first_chapter" ]; then
 					file="README.md"
