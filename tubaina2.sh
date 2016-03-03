@@ -37,33 +37,99 @@ if [ ! -d "$SRCDIR" ]; then
 	exit 1
 fi
 
-OPTS=`getopt -a -l dockerImage: -l showNotes -l native -l html -l epub -l mobi -l pdf -l ebooks -l imageRootFolder: -l pdfImageQuality: -l help -n 'tubaina2' -- "$0" "$@"`
-if [ $? != 0 ] ; then echo; show_help; exit 1 ; fi
-eval set -- "$OPTS"
+#OPTS=`getopt -a -l dockerImage: -l showNotes -l native -l html -l epub -l mobi -l pdf -l ebooks -l imageRootFolder: -l pdfImageQuality: -l help -n 'tubaina2' -- "$0" "$@"`
+#if [ $? != 0 ] ; then echo; show_help; exit 1 ; fi
+#eval set -- "$OPTS"
 
 DOCKER_IMAGE="casadocodigo/gitbook"
 OUTPUT_FORMAT="pdf"
-while true; do
-	case "$1" in
-		--dockerImage) DOCKER_IMAGE=$2; shift 2;;
-		--showNotes) SHOW_NOTES=true; shift;;
-		--native) NATIVE=true; shift;;
-		--html|--epub|--mobi|--pdf|--ebooks) OUTPUT_FORMAT="$1"; shift;;
-		--imageRootFolder) IMAGE_ROOT_FOLDER=$2; shift 2;;
-		--pdfImageQuality) PDF_IMAGE_QUALITY=$2; shift 2;;
-		--help) show_help; exit 0;;
-		--) shift; break;;
-		* ) break ;;
+PDF_IMAGE_QUALITY="prepress"
+
+optspec=":h-:"
+while getopts "$optspec" optchar; do
+	case "${optchar}" in
+        -)
+            case "${OPTARG}" in
+                dockerImage)
+                    DOCKER_IMAGE="${!OPTIND}"; OPTIND=$(( $OPTIND + 1 ))
+                    if [ ! $DOCKER_IMAGE ] ; then
+                    	echo "Please set a DOCKER IMAGE"
+                    	exit 1
+                    fi
+                    ;;
+
+                imageRootFolder)
+                    IMAGE_ROOT_FOLDER="${!OPTIND}"; OPTIND=$(( $OPTIND + 1 ))
+                    if [ ! $IMAGE_ROOT_FOLDER ] ; then
+                    	echo "Please set a IMAGE ROOT FOLDER"
+                    	exit 1
+                    fi
+                    ;;
+
+                pdfImageQuality)
+                    PDF_IMAGE_QUALITY="${!OPTIND}"; OPTIND=$(( $OPTIND + 1 ))
+                    if [ ! $PDF_IMAGE_QUALITY ] ; then
+                    	echo "Please set a PDF IMAGE QUALITY"
+                    	exit 1
+                    fi
+
+                    PDF_IMAGE_QUALITY_VALUES=(default screen ebook printer prepress)
+					if [[ ${PDF_IMAGE_QUALITY} && ! " ${PDF_IMAGE_QUALITY_VALUES[@]} " =~ " ${PDF_IMAGE_QUALITY} " ]]; then
+						echo "Error: Invalid -pdfImageQuality. Can be: ${PDF_IMAGE_QUALITY_VALUES[*]}"
+						exit 1
+					fi
+					;;
+                showNotes)
+               		SHOW_NOTES=true
+                    ;;
+
+                native)
+               		NATIVE=true
+                    ;;
+
+                help)
+               		show_help
+               		exit 2
+                    ;;
+
+                *)
+					OUTPUT_FORMAT_VALUES=(html pdf epub mobi ebooks)
+					if [[ ${OPTARG} && " ${OUTPUT_FORMAT_VALUES[@]} " =~ " ${OPTARG} " ]]; then
+						OUTPUT_FORMAT=${OPTARG}
+					else
+                    	echo "Unknown option --${OPTARG}" >&2
+                    	exit 1
+                    fi
+                    ;;
+            esac;;
+        h)
+            show_help
+            exit 2
+            ;;
+        *)
+            if [ "$OPTERR" != 1 ] || [ "${optspec:0:1}" = ":" ]; then
+                echo "Non-option argument: '-${OPTARG}'" >&2
+            fi
+            ;;
+
+
 	esac
 done
 
-PDF_IMAGE_QUALITY_VALUES=(default screen ebook printer prepress)
-if [[ ${PDF_IMAGE_QUALITY} && ! " ${PDF_IMAGE_QUALITY_VALUES[@]} " =~ " ${PDF_IMAGE_QUALITY} " ]]; then
-	echo "Error: Invalid -pdfImageQuality. Can be: ${PDF_IMAGE_QUALITY_VALUES[*]}"
-	exit 1
-fi
-#default value
-: ${PDF_IMAGE_QUALITY:=prepress}
+
+#while true; do
+#	case "$1" in
+#		--dockerImage) DOCKER_IMAGE=$2; shift 2;;
+#		--showNotes) SHOW_NOTES=true; shift;;
+#		--native) NATIVE=true; shift;;
+#		--html|--epub|--mobi|--pdf|--ebooks) OUTPUT_FORMAT="$1"; shift;;
+#		--imageRootFolder) IMAGE_ROOT_FOLDER=$2; shift 2;;
+#		--pdfImageQuality) PDF_IMAGE_QUALITY=$2; shift 2;;
+#		--help) show_help; exit 0;;
+#		--) shift; break;;
+#		* ) break ;;
+#	esac
+#done
 
 echo "[tubaina] Using docker image: $DOCKER_IMAGE"
 
