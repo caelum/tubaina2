@@ -93,8 +93,8 @@ while getopts "$optspec" optchar; do
 				if [[ ${OPTARG} && " ${OUTPUT_FORMAT_VALUES[@]} " =~ " ${OPTARG} " ]]; then
 					OUTPUT_FORMAT=${OPTARG}
 				else
-								echo "Unknown option --${OPTARG}" >&2
-								exit 1
+					echo "Unknown option --${OPTARG}" >&2
+					exit 1
 				fi
 				;;
 		esac;;
@@ -105,6 +105,7 @@ while getopts "$optspec" optchar; do
 	*)
 		if [ "$OPTERR" != 1 ] || [ "${optspec:0:1}" = ":" ]; then
 			echo "Non-option argument: '-${OPTARG}'" >&2
+			exit 1
 		fi
 		;;
 	esac
