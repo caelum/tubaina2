@@ -45,70 +45,69 @@ optspec=":h-:"
 while getopts "$optspec" optchar; do
 	case "${optchar}" in
 	-)
-            case "${OPTARG}" in
-                dockerImage)
-                    DOCKER_IMAGE="${!OPTIND}"; OPTIND=$(( $OPTIND + 1 ))
-                    if [ ! $DOCKER_IMAGE ] ; then
-                    	echo "Please set a DOCKER IMAGE"
-                    	exit 1
-                    fi
-                    ;;
+		case "${OPTARG}" in
+			dockerImage)
+				DOCKER_IMAGE="${!OPTIND}"; OPTIND=$(( $OPTIND + 1 ))
+				if [ ! $DOCKER_IMAGE ] ; then
+					echo "Please set a DOCKER IMAGE"
+					exit 1
+				fi
+				;;
 
-                imageRootFolder)
-                    IMAGE_ROOT_FOLDER="${!OPTIND}"; OPTIND=$(( $OPTIND + 1 ))
-                    if [ ! $IMAGE_ROOT_FOLDER ] ; then
-                    	echo "Please set a IMAGE ROOT FOLDER"
-                    	exit 1
-                    fi
-                    ;;
+			imageRootFolder)
+				IMAGE_ROOT_FOLDER="${!OPTIND}"; OPTIND=$(( $OPTIND + 1 ))
+				if [ ! $IMAGE_ROOT_FOLDER ] ; then
+					echo "Please set a IMAGE ROOT FOLDER"
+					exit 1
+				fi
+				;;
 
-                pdfImageQuality)
-                    PDF_IMAGE_QUALITY="${!OPTIND}"; OPTIND=$(( $OPTIND + 1 ))
-                    if [ ! $PDF_IMAGE_QUALITY ] ; then
-                    	echo "Please set a PDF IMAGE QUALITY"
-                    	exit 1
-                    fi
+			pdfImageQuality)
+				PDF_IMAGE_QUALITY="${!OPTIND}"; OPTIND=$(( $OPTIND + 1 ))
+				if [ ! $PDF_IMAGE_QUALITY ] ; then
+					echo "Please set a PDF IMAGE QUALITY"
+					exit 1
+				fi
 
-                    PDF_IMAGE_QUALITY_VALUES=(default screen ebook printer prepress)
-		if [[ ${PDF_IMAGE_QUALITY} && ! " ${PDF_IMAGE_QUALITY_VALUES[@]} " =~ " ${PDF_IMAGE_QUALITY} " ]]; then
-						echo "Error: Invalid -pdfImageQuality. Can be: ${PDF_IMAGE_QUALITY_VALUES[*]}"
-						exit 1
-					fi
-					;;
-                showNotes)
-               		SHOW_NOTES=true
-                    ;;
+				PDF_IMAGE_QUALITY_VALUES=(default screen ebook printer prepress)
+				if [[ ${PDF_IMAGE_QUALITY} && ! " ${PDF_IMAGE_QUALITY_VALUES[@]} " =~ " ${PDF_IMAGE_QUALITY} " ]]; then
+					echo "Error: Invalid -pdfImageQuality. Can be: ${PDF_IMAGE_QUALITY_VALUES[*]}"
+					exit 1
+				fi
+				;;
+			showNotes)
+				SHOW_NOTES=true
+				;;
 
-                native)
-               		NATIVE=true
-                    ;;
+			native)
+				NATIVE=true
+				;;
 
-                help)
-               		show_help
-               		exit 2
-                    ;;
+			help)
+				show_help
+				exit 2
+				;;
 
-                *)
-			OUTPUT_FORMAT_VALUES=(html pdf epub mobi ebooks)
-			if [[ ${OPTARG} && " ${OUTPUT_FORMAT_VALUES[@]} " =~ " ${OPTARG} " ]]; then
-				OUTPUT_FORMAT=${OPTARG}
-			else
-                	    	echo "Unknown option --${OPTARG}" >&2
-                    		exit 1
-	               fi
-                    ;;
-            esac;;
-        h)
-            show_help
-            exit 2
-            ;;
-        *)
-            if [ "$OPTERR" != 1 ] || [ "${optspec:0:1}" = ":" ]; then
-                echo "Non-option argument: '-${OPTARG}'" >&2
-            fi
-            ;;
-
-
+			*)
+				OUTPUT_FORMAT_VALUES=(html pdf epub mobi ebooks)
+				if [[ ${OPTARG} && " ${OUTPUT_FORMAT_VALUES[@]} " =~ " ${OPTARG} " ]]; then
+					OUTPUT_FORMAT=${OPTARG}
+				else
+					echo "Unknown option --${OPTARG}" >&2
+					exit 1
+				fi
+				;;
+		esac;;
+	h)
+		show_help
+		exit 2
+		;;
+	*)
+		if [ "$OPTERR" != 1 ] || [ "${optspec:0:1}" = ":" ]; then
+			echo "Non-option argument: '-${OPTARG}'" >&2
+			exit 1
+		fi
+		;;
 	esac
 done
 
