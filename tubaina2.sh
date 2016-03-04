@@ -28,6 +28,7 @@ function show_help {
 # First argument (optional) is a folder
 if [ "$1" ] && [[ "$1" != -* ]]; then
 	SRCDIR=`cd "$1" && pwd`
+	shift
 else
 	SRCDIR="$(pwd)"
 fi
