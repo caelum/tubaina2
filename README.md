@@ -11,6 +11,7 @@ tubaina.sh folder/ -html -showNotes -native
   -native runs outside Docker (optional, default runs inside Docker)
   -dockerImage repo/image (optional, default casadocodigo/gitbook)
   -imageRootFolder folder/ (optional)
+  -pdfImageQuality <default, screen, ebook, printer or prepress> (optional, default prepress)
   -help print usage
 
 On your book source folder, add a book.properties with optional book configurations:
