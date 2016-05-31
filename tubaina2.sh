@@ -76,6 +76,15 @@ while getopts "$optspec" optchar; do
 					exit 1
 				fi
 				;;
+
+			plugins)
+				OTHER_PLUGINS="${!OPTIND}"; OPTIND=$(( $OPTIND + 1 ))
+				if [ ! $OTHER_PLUGINS ] ; then
+					echo "Please set valid plugins"
+					exit 1
+				fi
+				;;
+
 			showNotes)
 				SHOW_NOTES=true
 				;;
@@ -159,6 +168,21 @@ function book_info {
 	[ "$BOOK_CODE" ] || BOOK_CODE="${SRCDIR##*/}"
 	[ "$THEME" ] || THEME="cdc-tema"
 
+	plugin_count=0
+	plugin_log=""
+	IFS=',' read -ra addr <<< "$OTHER_PLUGINS"
+	for plugin in "${addr[@]}"; do
+		plugin_count=$((plugin_count + 1))
+		plugin_log+="\n[tubaina]   	$plugin_count) $plugin"
+		echo -e "[tubaina]   Using other plugins: $plugin_log"
+	done
+
+	if [ ! $OTHER_PLUGINS]; then
+		PLUGINS="\"$THEME\""
+	else
+		PLUGINS="\"$THEME\",\"$OTHER_PLUGINS\""
+	fi
+
 	# Log
 	echo "[tubaina] Using these options:"
 	echo "[tubaina]   TITLE        = $TITLE"
@@ -166,6 +190,7 @@ function book_info {
 	echo "[tubaina]   AUTHOR       = $AUTHOR"
 	echo "[tubaina]   BOOK_CODE    = $BOOK_CODE"
 	echo "[tubaina]   THEME        = $THEME"
+	echo -e "[tubaina]   Using $plugin_count other plugins: $plugin_log"
 }
 
 function discover_first_chapter {
@@ -314,7 +339,7 @@ function generate_book_json {
 		"partHeaders": [${PART_HEADERS[*]}],
 		"pdfImageQuality": "$PDF_IMAGE_QUALITY",
 
-		"plugins": ["cdc", "$THEME"]
+		"plugins": ["cdc", $PLUGINS]
 
 	}
 END
