@@ -177,7 +177,7 @@ function book_info {
 		echo -e "[tubaina]   Using other plugins: $plugin_log"
 	done
 
-	if [ ! $OTHER_PLUGINS]; then
+	if [ ! $OTHER_PLUGINS ]; then
 		PLUGINS="\"$THEME\""
 	else
 		PLUGINS="\"$THEME\",\"$OTHER_PLUGINS\""
