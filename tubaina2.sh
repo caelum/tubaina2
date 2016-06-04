@@ -170,18 +170,15 @@ function book_info {
 
 	plugin_count=0
 	plugin_log=""
+	PARSED_OTHER_PLUGINS=""
 	IFS=',' read -ra addr <<< "$OTHER_PLUGINS"
 	for plugin in "${addr[@]}"; do
 		plugin_count=$((plugin_count + 1))
 		plugin_log+="\n[tubaina]   	$plugin_count) $plugin"
-		echo -e "[tubaina]   Using other plugins: $plugin_log"
+		PARSED_OTHER_PLUGINS="$PARSED_OTHER_PLUGINS, \"$plugin\""
 	done
 
-	if [ ! $OTHER_PLUGINS ]; then
-		PLUGINS="\"$THEME\""
-	else
-		PLUGINS="\"$THEME\",\"$OTHER_PLUGINS\""
-	fi
+	PLUGINS="\"$THEME\" $PARSED_OTHER_PLUGINS"
 
 	# Log
 	echo "[tubaina] Using these options:"
