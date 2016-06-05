@@ -13,6 +13,7 @@ function show_help {
 	echo "  --dockerImage repo/image (optional, default casadocodigo/gitbook)"
 	echo "  --imageRootFolder folder/ (optional)"
 	echo "  --pdfImageQuality <default, screen, ebook, printer or prepress> (optional, default prepress)"
+	echo "  --plugins <plugin-name>[,<plugin-name>, ...]"
 	echo "  --help print usage"
 	echo
 	echo "On your book source folder, add a book.properties with optional book configurations:"
