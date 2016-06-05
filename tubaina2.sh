@@ -172,6 +172,7 @@ function book_info {
 	plugin_count=0
 	plugin_log=""
 	PARSED_OTHER_PLUGINS=""
+	OLDIFS=$IFS
 	IFS=',' read -ra addr <<< "$OTHER_PLUGINS"
 	for plugin in "${addr[@]}"; do
 		plugin_count=$((plugin_count + 1))
@@ -189,6 +190,8 @@ function book_info {
 	echo "[tubaina]   BOOK_CODE    = $BOOK_CODE"
 	echo "[tubaina]   THEME        = $THEME"
 	echo -e "[tubaina]   Using $plugin_count other plugins: $plugin_log"
+	
+	IFS=$OLDIFS
 }
 
 function discover_first_chapter {
