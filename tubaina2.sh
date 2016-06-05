@@ -169,18 +169,41 @@ function book_info {
 	[ "$BOOK_CODE" ] || BOOK_CODE="${SRCDIR##*/}"
 	[ "$THEME" ] || THEME="cdc-tema"
 
-	plugin_count=0
-	plugin_log=""
-	PARSED_OTHER_PLUGINS=""
 	OLDIFS=$IFS
-	IFS=',' read -ra addr <<< "$OTHER_PLUGINS"
-	for plugin in "${addr[@]}"; do
+	IFS=',' read -ra plugins <<< "$OTHER_PLUGINS"
+	local plugin_count=0
+	local plugin_log=""
+	local parsed_other_plugins=""
+	local n_plugins=${#plugins[@]}
+	for plugin in "${plugins[@]}"; do
 		plugin_count=$((plugin_count + 1))
 		plugin_log+="\n[tubaina]   	$plugin_count) $plugin"
-		PARSED_OTHER_PLUGINS="$PARSED_OTHER_PLUGINS, \"$plugin\""
+		parsed_other_plugins="$parsed_other_plugins, \"$plugin\""
+		
+		local plugin_property_prefix=$(echo "$plugin" | tr '[:lower:]' '[:upper:]' | sed -e 's/-/_/g')
+		IFS=" " read -ra props <<< $(compgen -A variable | grep ^$plugin_property_prefix)
+		local n_props=${#props[@]}
+		local current_prop=0
+		local parsed_plugin_props=""
+		for prop in "${props[@]}"; do
+			current_prop=$((current_prop + 1))
+			local json_prop_name=$(echo $prop | sed -e "s/${plugin_property_prefix}_//g" | tr '[:upper:]' '[:lower:]')
+			local json_prop_value=${!prop}
+			local json_prop="\"$json_prop_name\": \"$json_prop_value\""
+			if [ $current_prop -lt $n_props ]; then
+				json_prop="$json_prop,"
+			fi	
+			parsed_plugin_props="$parsed_plugin_props $json_prop"
+		done
+		
+		parsed_plugin_props="\"$plugin\": {$parsed_plugin_props}"
+		if [ $plugin_count -lt $n_plugins ]; then
+			parsed_plugin_props="$parsed_plugin_props,"
+		fi
+		JSON_PLUGINS_PROPS="$JSON_PLUGINS_PROPS $parsed_plugin_props" 
 	done
-
-	PLUGINS="\"$THEME\" $PARSED_OTHER_PLUGINS"
+	
+	PLUGINS="\"$THEME\" $parsed_other_plugins"
 
 	# Log
 	echo "[tubaina] Using these options:"
@@ -339,7 +362,9 @@ function generate_book_json {
 		"numIntroChapters": $num_intro_chapters,
 		"partHeaders": [${PART_HEADERS[*]}],
 		"pdfImageQuality": "$PDF_IMAGE_QUALITY",
-
+		"pluginsConfig": {
+			$JSON_PLUGINS_PROPS
+		},
 		"plugins": ["cdc", $PLUGINS]
 
 	}
