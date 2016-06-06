@@ -199,7 +199,6 @@ function handlePlugins {
 		local n_props=$(compgen -A variable | grep ^$plugin_property_prefix | wc -l)
 		OLDERIFS=$IFS
 		while IFS= read -r prop; do
-			echo $prop
 			current_prop=$((current_prop + 1))
 			local json_prop_name=$(echo $prop | sed -e "s/${plugin_property_prefix}_//g" | tr '[:upper:]' '[:lower:]')
 			local json_prop_value=${!prop}
