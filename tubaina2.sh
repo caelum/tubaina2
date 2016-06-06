@@ -169,6 +169,19 @@ function book_info {
 	[ "$BOOK_CODE" ] || BOOK_CODE="${SRCDIR##*/}"
 	[ "$THEME" ] || THEME="cdc-tema"
 
+	# Log
+	echo "[tubaina] Using these options:"
+	echo "[tubaina]   TITLE        = $TITLE"
+	echo "[tubaina]   DESCRIPTION  = $DESCRIPTION"
+	echo "[tubaina]   AUTHOR       = $AUTHOR"
+	echo "[tubaina]   BOOK_CODE    = $BOOK_CODE"
+	echo "[tubaina]   THEME        = $THEME"
+
+	handlePlugins
+
+}
+
+function handlePlugins {
 	OLDIFS=$IFS
 	IFS=',' read -ra plugins <<< "$OTHER_PLUGINS"
 	local plugin_count=0
@@ -177,44 +190,38 @@ function book_info {
 	local n_plugins=${#plugins[@]}
 	for plugin in "${plugins[@]}"; do
 		plugin_count=$((plugin_count + 1))
-		plugin_log+="\n[tubaina]   	$plugin_count) $plugin"
+		plugin_log+="\n[tubaina]   $plugin_count) $plugin"
 		parsed_other_plugins="$parsed_other_plugins, \"$plugin\""
-		
+
 		local plugin_property_prefix=$(echo "$plugin" | tr '[:lower:]' '[:upper:]' | sed -e 's/-/_/g')
-		IFS=" " read -ra props <<< $(compgen -A variable | grep ^$plugin_property_prefix)
-		local n_props=${#props[@]}
 		local current_prop=0
 		local parsed_plugin_props=""
-		for prop in "${props[@]}"; do
+		local n_props=$(compgen -A variable | grep ^$plugin_property_prefix | wc -l)
+		OLDERIFS=$IFS
+		while IFS= read -r prop; do
+			echo $prop
 			current_prop=$((current_prop + 1))
 			local json_prop_name=$(echo $prop | sed -e "s/${plugin_property_prefix}_//g" | tr '[:upper:]' '[:lower:]')
 			local json_prop_value=${!prop}
 			local json_prop="\"$json_prop_name\": \"$json_prop_value\""
 			if [ $current_prop -lt $n_props ]; then
 				json_prop="$json_prop,"
-			fi	
+			fi
 			parsed_plugin_props="$parsed_plugin_props $json_prop"
-		done
-		
+		done < <(compgen -A variable | grep ^$plugin_property_prefix)
+		IFS=$OLDERIFS
+
 		parsed_plugin_props="\"$plugin\": {$parsed_plugin_props}"
 		if [ $plugin_count -lt $n_plugins ]; then
 			parsed_plugin_props="$parsed_plugin_props,"
 		fi
-		JSON_PLUGINS_PROPS="$JSON_PLUGINS_PROPS $parsed_plugin_props" 
+		JSON_PLUGINS_PROPS="$JSON_PLUGINS_PROPS $parsed_plugin_props"
 	done
-	
-	PLUGINS="\"$THEME\" $parsed_other_plugins"
 
-	# Log
-	echo "[tubaina] Using these options:"
-	echo "[tubaina]   TITLE        = $TITLE"
-	echo "[tubaina]   DESCRIPTION  = $DESCRIPTION"
-	echo "[tubaina]   AUTHOR       = $AUTHOR"
-	echo "[tubaina]   BOOK_CODE    = $BOOK_CODE"
-	echo "[tubaina]   THEME        = $THEME"
-	echo -e "[tubaina]   Using $plugin_count other plugins: $plugin_log"
-	
+	PLUGINS="\"$THEME\" $parsed_other_plugins"
 	IFS=$OLDIFS
+	echo -e "[tubaina] Using $plugin_count other plugins: $plugin_log"
+
 }
 
 function discover_first_chapter {
