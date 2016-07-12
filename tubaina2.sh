@@ -167,7 +167,7 @@ function book_info {
 	[ "$DESCRIPTION" ] || DESCRIPTION="No description {define one in book.properties}"
 	[ "$AUTHOR" ] || AUTHOR="Anonymous {define an author in book.properties}"
 	[ "$BOOK_CODE" ] || BOOK_CODE="${SRCDIR##*/}"
-	[ "$THEME" ] || THEME="cdc-tema"
+	[ "$OTHER_PLUGINS" ] || [ "$THEME" ] || THEME="cdc-tema"
 
 	# Log
 	echo "[tubaina] Using these options:"
@@ -217,7 +217,8 @@ function handlePlugins {
 		JSON_PLUGINS_PROPS="$JSON_PLUGINS_PROPS $parsed_plugin_props"
 	done
 
-	PLUGINS="\"$THEME\" $parsed_other_plugins"
+	[[ "$THEME" ]] && PLUGINS=",\"$THEME\" $parsed_other_plugins" || PLUGINS="$parsed_other_plugins"
+	
 	IFS=$OLDIFS
 	echo -e "[tubaina] Using $plugin_count other plugins: $plugin_log"
 
@@ -371,7 +372,7 @@ function generate_book_json {
 		"pluginsConfig": {
 			$JSON_PLUGINS_PROPS
 		},
-		"plugins": ["cdc", $PLUGINS]
+		"plugins": ["cdc" $PLUGINS]
 
 	}
 END
