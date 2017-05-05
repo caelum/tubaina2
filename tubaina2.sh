@@ -372,9 +372,6 @@ function ebook_filename {
 	fi
 
 	EBOOK_FILENAME="$EBOOK_FILENAME.$extension"
-
-	echo "ebook file name: $EBOOK_FILENAME"
-	exit
 }
 
 function cover {
