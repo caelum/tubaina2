@@ -363,15 +363,17 @@ function generate_version {
 function ebook_filename {
 	extension="$@"
 
+	FILENAME="$EBOOK_FILENAME"
+
 	if [[ $USE_BOOK_CODE_IN_EBOOK_FILENAME ]]; then
-		EBOOK_FILENAME="$EBOOK_FILENAME-$BOOK_CODE"
+		FILENAME="$FILENAME-$BOOK_CODE"
 	fi
 
 	if [[ $USE_VERSION_IN_EBOOK_FILENAME ]]; then
-		EBOOK_FILENAME="$EBOOK_FILENAME-V$version"
+		FILENAME="$FILENAME-V$version"
 	fi
 
-	EBOOK_FILENAME="$EBOOK_FILENAME.$extension"
+	FILENAME="$FILENAME.$extension"
 }
 
 function cover {
@@ -511,8 +513,8 @@ function epub {
 	adjust_image_root_folder
 	ebook_filename epub
 	run gitbook epub -v
-	mv $BUILDDIR/book.epub $BUILDDIR/$EBOOK_FILENAME 2> /dev/null
-	echo "[tubaina] Generated epub: $BUILDDIR/$EBOOK_FILENAME"
+	mv $BUILDDIR/book.epub $BUILDDIR/$FILENAME 2> /dev/null
+	echo "[tubaina] Generated epub: $BUILDDIR/$FILENAME"
 }
 
 function mobi {
@@ -527,8 +529,8 @@ function mobi {
 	adjust_image_root_folder
 	ebook_filename mobi
 	run gitbook mobi -v
-	mv $BUILDDIR/book.mobi $BUILDDIR/$EBOOK_FILENAME 2> /dev/null
-	echo "[tubaina] Generated mobi: $BUILDDIR/$EBOOK_FILENAME"
+	mv $BUILDDIR/book.mobi $BUILDDIR/$FILENAME 2> /dev/null
+	echo "[tubaina] Generated mobi: $BUILDDIR/$FILENAME"
 }
 
 function pdf {
@@ -546,8 +548,8 @@ function pdf {
 	adjust_image_root_folder
 	ebook_filename pdf
 	run gitbook pdf -v
-	mv $BUILDDIR/book.pdf $BUILDDIR/$EBOOK_FILENAME 2> /dev/null
-	echo "[tubaina] Generated PDF: $BUILDDIR/$EBOOK_FILENAME"
+	mv $BUILDDIR/book.pdf $BUILDDIR/$FILENAME 2> /dev/null
+	echo "[tubaina] Generated PDF: $BUILDDIR/$FILENAME"
 }
 
 # What to build
