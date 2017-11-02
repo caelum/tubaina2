@@ -14,6 +14,9 @@ function show_help {
 	echo "  --imageRootFolder folder/ (optional)"
 	echo "  --pdfImageQuality <default, screen, ebook, printer or prepress> (optional, default prepress)"
 	echo "  --plugins <plugin-name>[,<plugin-name>, ...]"
+	echo "  --ebookFilename ebook filename (optional, default book)"
+	echo "  --useBookCodeInEbookFilename (optional)"
+	echo "  --useVersionInEbookFilename (optional)"
 	echo "  --help print usage"
 	echo
 	echo "On your book source folder, add a book.properties with optional book configurations:"
@@ -42,6 +45,7 @@ fi
 DOCKER_IMAGE="casadocodigo/gitbook"
 OUTPUT_FORMAT="pdf"
 PDF_IMAGE_QUALITY="prepress"
+EBOOK_FILENAME="book"
 
 optspec=":h-:"
 while getopts "$optspec" optchar; do
@@ -84,6 +88,22 @@ while getopts "$optspec" optchar; do
 					echo "Please set valid plugins"
 					exit 1
 				fi
+				;;
+
+			ebookFilename)
+				EBOOK_FILENAME="${!OPTIND}"; OPTIND=$(( $OPTIND + 1 ))
+				if [ ! $EBOOK_FILENAME ] ; then
+					echo "Please set a EBOOK FILE NAME"
+					exit 1
+				fi
+				;;
+
+			useBookCodeInEbookFilename)
+				USE_BOOK_CODE_IN_EBOOK_FILENAME=true
+				;;
+
+			useVersionInEbookFilename)
+				USE_VERSION_IN_EBOOK_FILENAME=true
 				;;
 
 			showNotes)
@@ -354,6 +374,8 @@ function generate_book_json {
 		num_intro_chapters=0
 	fi
 
+	generate_version
+
 	# book.json
 	OLDIFS=$IFS
 	IFS=,
@@ -363,22 +385,49 @@ function generate_book_json {
 		"title": "$TITLE",
 		"description": "$DESCRIPTION",
 		"author": "$AUTHOR",
-
 		"bookCode": "$BOOK_CODE",
 		"firstChapter": "${first_chapter%.*}",
 		"numIntroChapters": $num_intro_chapters,
 		"partHeaders": [${PART_HEADERS[*]}],
 		"pdfImageQuality": "$PDF_IMAGE_QUALITY",
+		"version": "$version",
 		"pluginsConfig": {
 			$JSON_PLUGINS_PROPS
 		},
 		"plugins": ["cdc" $PLUGINS]
-
 	}
 END
 
 	IFS=$OLDIFS
 
+}
+
+function generate_version {
+	day=$(date +'%-d')
+	month=$(date +'%-m')
+	year=$(date +'%-y')
+
+	v=$(expr $year \* 12 + $month - 1)
+	v_int=$(expr $v / 10)
+	v_dec=$(expr $v % 10)
+
+	version="$v_int.$v_dec.$day"
+}
+
+function ebook_filename {
+	extension="$@"
+
+	FILENAME="$EBOOK_FILENAME"
+
+	if [[ $USE_BOOK_CODE_IN_EBOOK_FILENAME ]]; then
+		FILENAME="$FILENAME-$BOOK_CODE"
+	fi
+
+	if [[ $USE_VERSION_IN_EBOOK_FILENAME ]]; then
+		FILENAME="$FILENAME-V$version"
+	fi
+
+	FILENAME="$FILENAME.$extension"
 }
 
 function cover {
@@ -516,8 +565,10 @@ function epub {
 	cover
 	notes
 	adjust_image_root_folder
+	ebook_filename epub
 	run gitbook epub -v
-	echo "[tubaina] Generated epub: $BUILDDIR/book.epub"
+	mv $BUILDDIR/book.epub $BUILDDIR/$FILENAME 2> /dev/null
+	echo "[tubaina] Generated epub: $BUILDDIR/$FILENAME"
 }
 
 function mobi {
@@ -530,8 +581,10 @@ function mobi {
 	cover
 	notes
 	adjust_image_root_folder
+	ebook_filename mobi
 	run gitbook mobi -v
-	echo "[tubaina] Generated mobi: $BUILDDIR/book.mobi"
+	mv $BUILDDIR/book.mobi $BUILDDIR/$FILENAME 2> /dev/null
+	echo "[tubaina] Generated mobi: $BUILDDIR/$FILENAME"
 }
 
 function pdf {
@@ -547,8 +600,10 @@ function pdf {
 	cover
 	notes
 	adjust_image_root_folder
+	ebook_filename pdf
 	run gitbook pdf -v
-	echo "[tubaina] Generated PDF: $BUILDDIR/book.pdf"
+	mv $BUILDDIR/book.pdf $BUILDDIR/$FILENAME 2> /dev/null
+	echo "[tubaina] Generated PDF: $BUILDDIR/$FILENAME"
 }
 
 # What to build
