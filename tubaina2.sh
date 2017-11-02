@@ -5,12 +5,10 @@ function show_help {
 	echo "tubaina2.sh"
 	echo "  Generates a PDF book from current directory using docker."
 	echo
-	echo "tubaina.sh folder/ --html --showNotes --native"
+	echo "tubaina.sh folder/ --html --showNotes"
 	echo "  First argument (optional): source folder"
 	echo "  Output options: --html --epub --mobi --pdf --ebooks (optional, default pdf)"
 	echo "  --showNotes exposes instructor comments notes (optional, default hide notes)"
-	echo "  --native runs outside Docker (optional, default runs inside Docker)"
-	echo "  --dockerImage repo/image (optional, default casadocodigo/gitbook)"
 	echo "  --imageRootFolder folder/ (optional)"
 	echo "  --pdfImageQuality <default, screen, ebook, printer or prepress> (optional, default prepress)"
 	echo "  --plugins <plugin-name>[,<plugin-name>, ...]"
@@ -42,7 +40,6 @@ if [ ! -d "$SRCDIR" ]; then
 	exit 1
 fi
 
-DOCKER_IMAGE="casadocodigo/gitbook"
 OUTPUT_FORMAT="pdf"
 PDF_IMAGE_QUALITY="prepress"
 EBOOK_FILENAME="book"
@@ -52,14 +49,6 @@ while getopts "$optspec" optchar; do
 	case "${optchar}" in
 	-)
 		case "${OPTARG}" in
-			dockerImage)
-				DOCKER_IMAGE="${!OPTIND}"; OPTIND=$(( $OPTIND + 1 ))
-				if [ ! $DOCKER_IMAGE ] ; then
-					echo "Please set a DOCKER IMAGE"
-					exit 1
-				fi
-				;;
-
 			imageRootFolder)
 				IMAGE_ROOT_FOLDER="${!OPTIND}"; OPTIND=$(( $OPTIND + 1 ))
 				if [ ! $IMAGE_ROOT_FOLDER ] ; then
@@ -110,10 +99,6 @@ while getopts "$optspec" optchar; do
 				SHOW_NOTES=true
 				;;
 
-			native)
-				NATIVE=true
-				;;
-
 			help)
 				show_help
 				exit 2
@@ -142,8 +127,6 @@ while getopts "$optspec" optchar; do
 	esac
 done
 
-echo "[tubaina] Using docker image: $DOCKER_IMAGE"
-
 echo "[tubaina] Generating book from $SRCDIR"
 
 BUILDDIR="$SRCDIR"/.build
@@ -153,15 +136,8 @@ mkdir -p "$BUILDDIR"
 
 # Build using docker or in the OS
 function run {
-	if [[ $NATIVE ]]; then
-		cd "$BUILDDIR"
-		"$@"
-	else
-		if [ -d "$BUILDDIR"/extras_env ]; then
-			EXTRAS_ENV="-e EXTRAS_DIR=/data/extras_env"
-		fi
-		docker run --rm $EXTRAS_ENV -v "$BUILDDIR":/data $DOCKER_IMAGE "$@"
-	fi | while read line; do echo "[$1] $line"; done
+	cd "$BUILDDIR"
+	"$@"
 }
 
 function copy {
@@ -590,9 +566,6 @@ function mobi {
 function pdf {
 	echo "[tubaina] Generating pdf"
 	copy
-	if [ -d "$EXTRAS_DIR" ]; then
-		cp -R "$EXTRAS_DIR" "$BUILDDIR"/extras_env
-	fi
 	book_info
 	discover_first_chapter pdf
 	generate_summary pdf

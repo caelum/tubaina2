@@ -8,8 +8,6 @@ tubaina.sh folder/ --html --showNotes --native
   First argument (optional): source folder
   Output options: --html --epub --mobi --pdf --ebooks (optional, default pdf)
   --showNotes exposes instructor comments notes (optional, default hide notes)
-  --native runs outside Docker (optional, default runs inside Docker)
-  --dockerImage repo/image (optional, default casadocodigo/gitbook)
   --imageRootFolder folder/ (optional)
   --pdfImageQuality <default, screen, ebook, printer or prepress> (optional, default prepress)
   --ebookFilename ebook filename (optional, default book)
