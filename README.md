@@ -12,6 +12,7 @@ tubaina.sh folder/ --html --showNotes --native
   --dockerImage repo/image (optional, default casadocodigo/gitbook)
   --imageRootFolder folder/ (optional)
   --pdfImageQuality <default, screen, ebook, printer or prepress> (optional, default prepress)
+  --plugins <plugin-name>[,<plugin-name>, ...]
   --ebookFilename ebook filename (optional, default book)
   --useBookCodeInEbookFilename (optional)
   --useVersionInEbookFilename (optional)
