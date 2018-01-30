@@ -195,7 +195,7 @@ function discover_first_chapter {
 
 
 	# first chapter as README
-	if [[ "$type" == *epub* || "$type" == *mobi* ]] && [ -d "$BUILDDIR/intro" ]; then
+	if [[ "$type" == *epub* || "$type" == *mobi* ]] && [ $(ls $BUILDDIR/intro/*.md &> /dev/null;) ]; then
 		first_chapter_dir="$BUILDDIR/intro"
 	else
 		first_chapter_dir="$BUILDDIR"
@@ -302,7 +302,7 @@ function generate_summary {
 	}
 
 	# summary begins with intro for epub or mobi
-	if [[ "$type" == *epub* || "$type" == *mobi* ]] && [ -d "$SRCDIR/intro" ]; then
+	if [[ "$type" == *epub* || "$type" == *mobi* ]] && [ $(ls $SRCDIR/intro/*.md &> /dev/null;) ]; then
 		summary "intro"
 	fi
 
@@ -314,7 +314,7 @@ function generate_summary {
 function generate_book_json {
 	type="$@"
 
-	if [[ "$type" == *epub* || "$type" == *mobi* ]] && [ -d "$SRCDIR/intro" ]; then
+	if [[ "$type" == *epub* || "$type" == *mobi* ]] && [ $(ls $SRCDIR/intro/*.md &> /dev/null;) ]; then
 		num_intro_chapters=$(ls "$SRCDIR"/intro/*.md | wc -l)
 	else
 		num_intro_chapters=0
