@@ -134,12 +134,16 @@ BUILDDIR="$SRCDIR"/.build
 rm -rf "$BUILDDIR" 2> /dev/null
 mkdir -p "$BUILDDIR"
 
-# Build using docker or in the OS
-function run {
-	cd "$BUILDDIR"
+function exit_if_error {
 	if ! "$@"; then
 		exit 1
 	fi
+}
+
+# Build using docker or in the OS
+function run {
+	cd "$BUILDDIR"
+	"$@"
 }
 
 function copy {
@@ -497,7 +501,7 @@ function html {
 		mv "$BUILDDIR"/intro-html "$BUILDDIR"/intro
 	fi
 
-	run gitbook build -v
+	exit_if_error run gitbook build -v
 	echo "[tubaina] Generated HTML output: $BUILDDIR/_book/"
 
 	first="${first_chapter##*[0-9]-}" #strip leading numbers and hyphen
@@ -544,7 +548,7 @@ function epub {
 	notes
 	adjust_image_root_folder
 	ebook_filename epub
-	run gitbook epub -v
+	exit_if_error run gitbook epub -v
 	mv $BUILDDIR/book.epub $BUILDDIR/$FILENAME 2> /dev/null
 	echo "[tubaina] Generated epub: $BUILDDIR/$FILENAME"
 }
@@ -560,7 +564,7 @@ function mobi {
 	notes
 	adjust_image_root_folder
 	ebook_filename mobi
-	run gitbook mobi -v
+	exit_if_error run gitbook mobi -v
 	mv $BUILDDIR/book.mobi $BUILDDIR/$FILENAME 2> /dev/null
 	echo "[tubaina] Generated mobi: $BUILDDIR/$FILENAME"
 }
@@ -576,7 +580,7 @@ function pdf {
 	notes
 	adjust_image_root_folder
 	ebook_filename pdf
-	run gitbook pdf -v
+	exit_if_error run gitbook pdf -v
 	mv $BUILDDIR/book.pdf $BUILDDIR/$FILENAME 2> /dev/null
 	echo "[tubaina] Generated PDF: $BUILDDIR/$FILENAME"
 }
