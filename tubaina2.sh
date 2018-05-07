@@ -137,7 +137,9 @@ mkdir -p "$BUILDDIR"
 # Build using docker or in the OS
 function run {
 	cd "$BUILDDIR"
-	"$@"
+	if ! "$@"; then
+		exit 1
+	fi
 }
 
 function copy {
